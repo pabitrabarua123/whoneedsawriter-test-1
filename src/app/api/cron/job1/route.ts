@@ -345,11 +345,11 @@ export async function GET() {
 
         console.log(params.toString());
 
-        // fetch(webhookUrl, {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        //   body: params.toString()
-        // });
+        fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: params.toString()
+        });
 
         console.log(`Batch ${batch.id}: Made API call for pending article ${articleData.pendingArticle.godmodeArticleId} (keyword: ${articleData.pendingArticle.keywordId})`);
       }
@@ -482,11 +482,11 @@ export async function GET() {
 
           console.log(params.toString());
 
-          // fetch(webhookUrl, {
-          //   method: 'POST',
-          //   headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          //   body: params.toString()
-          // });
+          fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params.toString()
+          });
 
           console.log(`Batch ${batch.id}: Made API call for pending article ${articleData.pendingArticle.godmodeArticleId} (keyword: ${articleData.pendingArticle.keywordId})`);
         }

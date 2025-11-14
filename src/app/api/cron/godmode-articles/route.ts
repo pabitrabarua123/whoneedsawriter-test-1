@@ -116,16 +116,16 @@ export async function GET() {
         console.log(params.toString());
         console.log(webhookUrl);
         // Fire-and-forget API call to make.com (don't await the response)
-        // axios.post(webhookUrl, params.toString(), {
-        //   headers: { 
-        //     'Content-Type': 'application/x-www-form-urlencoded' 
-        //   },
-        //   timeout: 5000 // Shorter timeout
-        // }).then(() => {
-        //   console.log(`✅ Successfully sent request to make.com for article ${fullArticle.id} (keyword: ${fullArticle.keyword})`);
-        // }).catch((error) => {
-        //   console.error(`❌ Make.com API call failed for article ${fullArticle.id}:`, error.message);
-        // });
+        axios.post(webhookUrl, params.toString(), {
+          headers: { 
+            'Content-Type': 'application/x-www-form-urlencoded' 
+          },
+          timeout: 5000 // Shorter timeout
+        }).then(() => {
+          console.log(`✅ Successfully sent request to make.com for article ${fullArticle.id} (keyword: ${fullArticle.keyword})`);
+        }).catch((error) => {
+          console.error(`❌ Make.com API call failed for article ${fullArticle.id}:`, error.message);
+        });
 
         // Add batch to set for checking completion
         processedBatches.add(fullArticle.batchId);
