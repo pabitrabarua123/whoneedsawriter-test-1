@@ -213,6 +213,7 @@ export const SidebarMenuItems: React.FC<MenuProps> = ({
       Routes.batch,
       Routes.account,
       Routes.apiKeys,
+      Routes.pricing,
     ];
     
     routesToPrefetch.forEach(route => {
@@ -234,6 +235,7 @@ export const SidebarMenuItems: React.FC<MenuProps> = ({
             borderRadius="12px"
             mb="8px"
             p="6px"
+            onClick={() => router.push(Routes.root)}
           >
             <Image src="/logo-icon.png" alt="Logo" width={36} height={36} />
           </Button>
@@ -270,11 +272,12 @@ export const SidebarMenuItems: React.FC<MenuProps> = ({
               borderRadius="12px"
               alignItems="center"
               justifyContent="center"
+              onClick={() => router.push(Routes.batch  )}
             >
               <TbKey size="16px" color="#fbbf24" />
             </Flex>
-            <Text color={textColor} fontSize="11px" fontWeight="500" textAlign="center">
-              Keywords
+            <Text color={textColor} fontSize="11px" fontWeight="500" textAlign="center" onClick={() => router.push(Routes.batch  )}>
+              Batches
             </Text>
           </Flex>
 
@@ -288,10 +291,11 @@ export const SidebarMenuItems: React.FC<MenuProps> = ({
               borderRadius="12px"
               alignItems="center"
               justifyContent="center"
+              onClick={() => router.push(Routes.batch  )}
             >
               <FaFolderOpen size="16px" color="#fbbf24" />
             </Flex>
-            <Text color={textColor} fontSize="11px" fontWeight="500" textAlign="center">
+            <Text color={textColor} fontSize="11px" fontWeight="500" textAlign="center" onClick={() => router.push(Routes.batch  )}>
               History
             </Text>
           </Flex>
@@ -313,6 +317,7 @@ export const SidebarMenuItems: React.FC<MenuProps> = ({
               alignItems="center"
               justifyContent="center"
               position="relative"
+              onClick={() => router.push(Routes.account)}
             >
               <TbUser size="16px" color="#60a5fa" />
               <Badge
@@ -345,10 +350,11 @@ export const SidebarMenuItems: React.FC<MenuProps> = ({
               borderRadius="12px"
               alignItems="center"
               justifyContent="center"
+              onClick={() => router.push(Routes.pricing)}
             >
               <TbRocket size="16px" color="white" />
             </Flex>
-            <Text color={textColor} fontSize="11px" fontWeight="500" textAlign="center">
+            <Text color={textColor} fontSize="11px" fontWeight="500" textAlign="center" onClick={() => router.push(Routes.pricing)}>
               Upgrade
         </Text>
           </Flex>

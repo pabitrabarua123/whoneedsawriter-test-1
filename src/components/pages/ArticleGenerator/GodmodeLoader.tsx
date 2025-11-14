@@ -46,7 +46,6 @@ interface GodmodeLoaderProps {
 
 const GodmodeLoader = ({ isProcessing, progress }: GodmodeLoaderProps) => {
   const spinnerColor = useColorModeValue("blackAlpha.300", "whiteAlpha.300");
-  const bgColor = useColorModeValue("white", "#060d36");
   const textColor = useColorModeValue("gray.600", "gray.300");
   const router = useRouter();
   
@@ -100,13 +99,12 @@ const GodmodeLoader = ({ isProcessing, progress }: GodmodeLoaderProps) => {
       justifyContent="center"
     >
       <Box
-        bg={bgColor}
         p={8}
         borderRadius="xl"
         boxShadow="2xl"
         maxW="500px"
         w="90%"
-        // animation={`${pulse} 2s infinite`}
+        backgroundImage="linear-gradient(to bottom, #151923, #131827)"
       >
         <VStack spacing={6}>
           <CircularProgress
@@ -144,10 +142,13 @@ const GodmodeLoader = ({ isProcessing, progress }: GodmodeLoaderProps) => {
               <Button
                 colorScheme="teal"
                 size="lg"
-                onClick={() => router.push('/dashboard')}
+                onClick={() => {
+                  router.push('/article-generator');
+                  window.location.reload();
+                }}
                 w="100%"
               >
-                Go to Dashboard
+                Back to Article Generator
               </Button>
             </>
           )}

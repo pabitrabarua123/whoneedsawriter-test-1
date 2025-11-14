@@ -40,7 +40,7 @@ export const Hero = ({
   const onGetStartedClick = () => {
     setLoadingCta(true);
     if (user) {
-      router.push(Routes.dashboard);
+      router.push(Routes.articlegenerator);
       return;
     }
     router.push(Routes.signUp);

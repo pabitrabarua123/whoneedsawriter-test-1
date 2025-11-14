@@ -191,7 +191,14 @@ import { useQuery } from "@tanstack/react-query";
     return (
       <Modal isOpen={isOpen} onClose={onClose} size="6xl" isCentered>
         <ModalOverlay />
-        <ModalContent bgColor={bg12} maxW="900px" maxH="90vh">
+        <ModalContent 
+          bgGradient="linear(to-b, #151923, #131827)" 
+          borderRadius="18px" 
+          maxW="900px" 
+          maxH="90vh" 
+          boxShadow="0 0 0 1px rgba(148, 163, 184, 0.1), 0 20px 60px rgba(0, 0, 0, 0.6)"
+          border="1px solid #ffffff14"
+          >
           <ModalHeader textAlign="center">Upgrade Plan</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6} overflowY="auto">

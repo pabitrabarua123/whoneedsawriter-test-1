@@ -76,10 +76,12 @@ const openai = new OpenAI({
 });
 
 // Function to calculate credit cost based on selected model
-function getCreditCost(selectedModel: string): number {
-  switch (selectedModel) {
+function getCreditCost(model: string): number {
+  switch (model) {
     case '1a-lite':
       return 0.1;
+    case '1a-core':
+      return 1;
     case '1a-pro':
       return 2;
     default:
@@ -96,10 +98,14 @@ export async function POST(request: Request) {
   const userId = session?.user.id as string;
   
   try {
-    const {batchId, text, prompt, is_godmode, balance_type, no_of_keyword, wordLimit, featuredImage, imageInArticle, specialRequests, selectedModel} = await request.json();
+    const {batchId, text, prompt, is_godmode, model, balance_type, no_of_keyword, wordLimit, featuredImage, imageInArticle, specialRequests, selectedModel } = await request.json();
     if (!text || typeof text !== "string") {
       return NextResponse.json({ error: "Invalid keyword" }, { status: 400 });
     }
+    if (!model || typeof model !== "string") {
+      return NextResponse.json({ error: "Invalid model" }, { status: 400 });
+    }
+
     let aiResponse = '';
     if(is_godmode){
         // Split the text into individual keywords
@@ -112,6 +118,7 @@ export async function POST(request: Request) {
                     userId,
                     batchId: batchId,
                     keyword: keyword,
+                    model: model,
                     articleType: 'godmode123',
                     featuredImageRequired: featuredImage === 'yes' ? 'Yes' : 'No',
                     additionalImageRequired: imageInArticle === 'yes' ? 'Yes' : 'No',
@@ -135,7 +142,7 @@ export async function POST(request: Request) {
         }
 
         // Calculate total credit cost based on model and number of keywords
-        const creditCostPerArticle = getCreditCost(selectedModel || '1a-pro');
+        const creditCostPerArticle = getCreditCost(model || '1a-pro');
         const totalCreditCost = parseFloat((no_of_keyword * creditCostPerArticle).toFixed(1));
 
         console.log(totalCreditCost);
@@ -161,67 +168,6 @@ export async function POST(request: Request) {
 
         // Respond to the client after all webhooks finish
         return NextResponse.json({ status: 200, articles });
-    } else {
-        let content = prompt.replace('{KEYWORD}', text);
-
-        const response = await openai.chat.completions.create({
-          model: "gpt-4.1-nano",
-          messages: [{ role: "user", content: content }],
-          response_format: {
-            "type": "text"
-          },
-          temperature: 1,
-          max_completion_tokens: 2048,
-          top_p: 1,
-          frequency_penalty: 0,
-          presence_penalty: 0
-        });
-
-        aiResponse = response.choices[0]?.message?.content || "No response from OpenAI";
-        aiResponse = aiResponse.replace('```html', '');
-
-        // Smart balance deduction for Lite Mode
-        const user = await prismaClient.user.findUnique({ where: { id: userId } });
-        const creditCostPerArticle = getCreditCost(selectedModel || '1a-lite');
-        const deductionAmount = parseFloat((no_of_keyword * creditCostPerArticle).toFixed(1));
-
-        if (!user) {
-          return NextResponse.json({ error: "User not found" }, { status: 404 });
-        }
-
-        // Calculate new balance to avoid floating-point errors
-        const currentBalance = user[balance_type as keyof typeof user] as number;
-        const newBalance = parseFloat((currentBalance - deductionAmount).toFixed(1));
-
-        await prismaClient.$transaction([
-          prismaClient.godmodeArticles.create({
-            data: {
-              userId,
-              content: aiResponse,
-              batchId: batchId,
-              keyword: text,
-              articleType: 'liteMode',
-              status: 1,
-            },
-          }),
-          prismaClient.batch.update({
-            where: { id: batchId },
-            data: {
-              completed_articles: {
-                increment: 1
-              },
-              status: 1
-            }
-          }),
-          prismaClient.user.update({
-            where: { id: userId },
-            data: {
-                [balance_type]: newBalance,
-            },
-          })
-        ]);        
-    
-        return NextResponse.json({ status: 200, aiResponse });
     }
 
   } catch (error) {

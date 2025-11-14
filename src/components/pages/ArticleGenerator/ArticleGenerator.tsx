@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
 import {
   Button,
   Text,
@@ -28,9 +28,6 @@ import {
 import {
   TbPlus
 } from "react-icons/tb";
-import { LuTimerReset } from "react-icons/lu";
-import { FiSettings, FiInfo } from "react-icons/fi";
-import { BsFillQuestionCircleFill } from "react-icons/bs";
 import { GiCheckMark } from "react-icons/gi";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import toast from "react-hot-toast";
@@ -48,13 +45,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import GodmodeLoader from "./GodmodeLoader";
 import { TourGuide, useTourStatus, articleGeneratorTourSteps, articleGeneratorGodModeTourSteps } from "@/components/TourGuide";
 import DashboardHeader from "@/components/organisms/DashboardHeader/DashboardHeader"; 
+import { UserContext, UserContextType } from "@/app/customProviders/UserProvider";
+import { PricingPopupContext } from "@/app/PricingPopupProvider";
 
 const ArticleGenerator: React.FC = () => {
   
   const router = useRouter();
   const [isEditPromptDialogOpen, setIsEditPromptDialogOpen] = React.useState(false);
-  const [isSettingsPopupOpen, setIsSettingsPopupOpen] = useState(false);
-  
+  const { onOpen: onPricingPopupOpen } = useContext(PricingPopupContext);
   // Tour guide state
   const [runTour, setRunTour] = useState(false);
   const { shouldShowTour, resetTour, markTourComplete } = useTourStatus('article-generator');
@@ -82,26 +80,8 @@ const ArticleGenerator: React.FC = () => {
     }
   }, [param]);
 
-  const spinnerColor = useColorModeValue("blackAlpha.300", "whiteAlpha.300");
-
-  const {
-      data: userData,
-      isLoading,
-      error,
-    } = useQuery({
-      queryKey: ["user"],
-      queryFn: async () => {
-        const response = await fetch('/api/user');
-        console.log(response);
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return response.json() as Promise<{
-          user: User;
-        }>;
-      }
-  });
-  const user = userData?.user ?? null;
+// Getting user details from the context
+  const { user, isLoading, error } = useContext(UserContext) as UserContextType;
   //console.log(user, isLoading);
 
   // Auto-start tour for new users
@@ -150,13 +130,13 @@ const ArticleGenerator: React.FC = () => {
       text: string, 
       prompt: string, 
       is_godmode: boolean, 
+      model: string,
       balance_type?: string, 
       no_of_keyword: number,
       wordLimit?: string, // Optional as it might not be used by lite mode
       featuredImage?: string, // Optional
       imageInArticle?: string, // Optional
       specialRequests?: string, // Optional
-      selectedModel?: string // Optional
     }) => {
       const response = await fetch("/api/article-generator", {
         method: "POST",
@@ -186,21 +166,23 @@ const ArticleGenerator: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const sendKeywordsSequentially = async (keywords: string[]) => {
-    if(balance.credits == 0) {
-      openTimerPopup();
+    if(keywords.length === 0){
+      toast.error("Please enter Keywords");
       return;
     }
-    if(keywords.length > balance.credits){
-       toast.error("Limit Exceeded. Please shorten your list or buy more credits. ");
-       return;
+    if(balance.credits == 0) {
+      onPricingPopupOpen();
+      return;
     }
-    if(keywords.length === 0){
-       toast.error("Please enter Keywords");
+    if(keywords.length > balance.credits*10){
+      console.log(keywords.length);
+      console.log(balance.credits*10);
+      toast.error("Limit Exceeded. Please shorten your list or buy more credits. ");
       return;
     }
     if(keywords.length > 10) {
-     toast.error("10 Maximum keywords allowed in one batch");
-     return;
+      toast.error("10 Maximum keywords allowed in one batch");
+      return;
     }
 
     setIsProcessing(true);
@@ -236,9 +218,9 @@ const ArticleGenerator: React.FC = () => {
             text: keywords[i],
             prompt: prompt,
             is_godmode: isGodMode,
+            model: selectedModel,
             no_of_keyword: 1,
             balance_type: balance.balance_type,
-            selectedModel: selectedModel,
           });
         } catch (error: any) {
          // console.error(`Error processing keyword "${keywords[i]}":`, error);
@@ -269,8 +251,8 @@ const ArticleGenerator: React.FC = () => {
   const redirectReadyRef = useRef(false);
 
   const sendKeywordsSequentiallyGodmode = async (keywords: string[]) => {
-    if (balance.credits == 0) {
-      openTimerPopup();
+    if (balance.credits == 0 ) {
+      onPricingPopupOpen();
       return;
     }
     if (keywords.length*2 > balance.credits) {
@@ -311,13 +293,13 @@ const ArticleGenerator: React.FC = () => {
         text: keywords.join('\n'),
         prompt: prompt,
         is_godmode: isGodMode,
+        model: selectedModel,
         balance_type: balance.balance_type,
         no_of_keyword: keywords.length,
         wordLimit: wordLimit,
         featuredImage: featuredImage,
         imageInArticle: imageInArticle,
         specialRequests: specialRequests,
-        selectedModel: selectedModel,
       });
       
       // Store all article IDs
@@ -333,35 +315,6 @@ const ArticleGenerator: React.FC = () => {
         clearInterval(timerRef.current);
       }
     }
-  };
-
-  const start25MinLoaderOld = () => {
-    setProgressGodmode(0); // reset
-    const duration = 900; // 900 seconds
-    let secondsPassed = 0;
-    let apiCalled = false; // ensure it's called only once
-  
-    if (timerRef.current) clearInterval(timerRef.current);
-  
-    timerRef.current = setInterval(() => {
-      secondsPassed++;
-      const percent = (secondsPassed / duration) * 100;
-      setProgressGodmode(percent);
-  
-      const remaining = duration - secondsPassed;
-  
-      // Trigger API call when 60 seconds or less remain
-      if (remaining <= 10 && !apiCalled) {
-        apiCalled = true;
-        checkArticlePrepared();
-      }
-  
-      if (secondsPassed >= duration) {
-        setGodModeLoader(false);
-        clearInterval(timerRef.current!);
-        redirectReadyRef.current = true;
-      }
-    }, 1000); // update every second
   };
 
   // Add this state
@@ -394,15 +347,6 @@ const start25MinLoader = () => {
     }
   };
   
-  // Handle visibility change
-  const handleVisibilityChange = () => {
-    if (!document.hidden) {
-      // Tab became visible, resume with correct time
-      updateProgress();
-    }
-  };
-  
-  document.addEventListener('visibilitychange', handleVisibilityChange);
   updateProgress();
 };
   
@@ -450,41 +394,24 @@ const start25MinLoader = () => {
     }
   }, [godmodeArticleRemain, GodModeLoader]);
   
-
-  const [isPricingPopupOpen, setIsPricingPopupOpen] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<string>("monthly")
-  
-  const openPricingPopup = (): void => {
-    setIsPricingPopupOpen(true);
-  };
-
-  const closePricingPopup = (): void => {
-   setIsPricingPopupOpen(false);
-  };
-
-  const [isTimerPopupOpen, setIsTimerPopupOpen] = useState<boolean>(false);
-
-  const openTimerPopup = (): void => {
-    setIsTimerPopupOpen(true);
-  };
-
-  const closeTimerPopup = (): void => {
-   setIsTimerPopupOpen(false);
-  };
-
   const [isGodMode, setIsGodMode] = useState<boolean>(true);
-  const [selectedModel, setSelectedModel] = useState<string>("1a-pro");
+  const [selectedModel, setSelectedModel] = useState<string>("1a-core");
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   
-
-
   const modelOptions = [
     {
       value: "1a-lite",
       label: "1a Lite",
       credits: "0.1 Credit",
       description: "Simple content, no frills",
-      isGodMode: false
+      isGodMode: true
+    },
+    {
+      value: "1a-core",
+      label: "1a Core",
+      credits: "1 Credit",
+      description: "Research-backed. Blog-ready.",
+      isGodMode: true
     },
     {
       value: "1a-pro",
@@ -548,115 +475,18 @@ const start25MinLoader = () => {
   }, [user]);
 
 
-const { data: productData, isLoading: isLoadingPrice, error: errorPrice } = useQuery({
-    queryKey: ["products"],
-    queryFn: async () => {
-      const response = await fetch("/api/products");
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      return response.json();
-    }
-  });
-
-  //console.log(productData);
-  const {
-    data: planData,
-    isLoading: isLoadingPlan,
-    error: errorPlan,
-  } = useQuery({
-    queryKey: ["plans"],
-    queryFn: async () => {
-      const response = await fetch('/api/account');
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      return response.json();
-    },
-    enabled: true,
-});
-
-  const [filteredPlansSubscription, setFilteredPlansSubscription] = useState<any[]>([]);
-  const [filteredPlansLifetime, setFilteredPlansLifetime] = useState<any[]>([]);
-  const [countryName, setCountryName] = useState<string>('');
-  useEffect(() => {
-    //  console.log(productData);
-      // Early return if productData is not available yet
-      if (!productData) return;
-      
-const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
-const geoUrl = `https://www.googleapis.com/geolocation/v1/geolocate?key=${apiKey}`;
-
-const requestData = {
-  homeMobileCountryCode: 310,
-  homeMobileNetworkCode: 410,
-  radioType: 'gsm',
-  carrier: 'Vodafone',
-  considerIp: true
-};
-
-fetch(geoUrl, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify(requestData)
-})
-.then(response => response.json())
-.then(data => {
-  const { lat, lng } = data.location;
-  
-  const geocodeApiKey = apiKey;
-  const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${geocodeApiKey}`;
-  
-  return fetch(geocodeUrl);
-})
-.then(response => response.json())
-.then(data => {
-  const addressComponents = data.results[0].address_components;
-  const country = addressComponents.find((component: { types: string[]; }) => component.types.includes('country'));
-  if (country) {
-    //console.log('Country Name:', country.long_name);
-    //console.log('Country Code:', country.short_name);
-   setCountryName(country.long_name); 
-   if(country.long_name === 'India'){
-    //console.log('Country Name:', country.long_name);
-    setFilteredPlansSubscription(productData.subscriptionPlans.filter((plan: { currency: string; }) => plan.currency === 'INR'));
-    setFilteredPlansLifetime(productData.lifetimePlans.filter((plan: { currency: string; }) => plan.currency === 'INR'));
-  }else{
-    setFilteredPlansSubscription(productData.subscriptionPlans.filter((plan: { currency: string; }) => plan.currency === 'USD'));
-    setFilteredPlansLifetime(productData.lifetimePlans.filter((plan: { currency: string; }) => plan.currency === 'USD'));
-  }
-  } else {
-    console.log('Country information not found');
-  }
-})
-.catch(error => {
-  console.error('Error:', error);
-  // Add null check for productData before accessing its properties
-  if (productData) {
-    setFilteredPlansSubscription(productData.subscriptionPlans.filter((plan: { currency: string; }) => plan.currency === 'USD'));
-    setFilteredPlansLifetime(productData.lifetimePlans.filter((plan: { currency: string; }) => plan.currency === 'USD'));
-  }
-});
-  }, [productData]);
-
-
   const [wordLimit, setWordLimit] = useState("2000");
   const [featuredImage, setFeaturedImage] = useState("yes");
   const [imageInArticle, setImageInArticle] = useState("no");
   const [specialRequests, setSpecialRequests] = useState("");
-  const [enableInfographics, setEnableInfographics] = useState(false);
   const [enableExternalLinks, setEnableExternalLinks] = useState(false);
 
   return (
     <Flex justifyContent="flex-start" w="100%" minH="100vh">
         <div className="flex-col w-full">
-
         <DashboardHeader />
-
-    <Container pt={["96px", "110px"]} alignItems="flex-center" maxWidth="1050px" mb="56px">
-      <VStack align="flex-start" spacing={6} width="100%">
+        <Container pt={["96px", "110px"]} alignItems="flex-center" maxWidth="1050px" mb="56px">
+         <VStack align="flex-start" spacing={6} width="100%">
       
       <Box className="border border-[#ffffff14] rounded-2xl p-[22px] w-full mb-4 bg-gradient-to-b from-[#151923] to-[#131827]" style={{ boxShadow: '0 10px 30px rgba(0,0,0,.35)' }}>
         {/* Header Section */}
@@ -733,6 +563,7 @@ fetch(geoUrl, {
                 </div>
               </div>
               </div>
+              { isGodMode && (
               <div className="flex flex-col w-full">
                 <div className="bg-[#1b2232] rounded-lg p-4 flex-1 border border-[#ffffff14]">
                   <label className="block text-sm text-[#7f8aa3] mb-3">Word Count</label>
@@ -758,6 +589,7 @@ fetch(geoUrl, {
                   </div>
                 </div>
               </div>
+              )}
 
           {/* <Flex direction="column" alignItems="flex-end" width="100%" className="balance-div">
             { isLoading ?
@@ -802,14 +634,14 @@ fetch(geoUrl, {
 
           <button
             type="button"
-            onClick={() => setEnableInfographics(prev => !prev)}
+            onClick={() => setImageInArticle(prev => (prev === 'yes' ? 'no' : 'yes'))}
             className={`w-fit flex items-center gap-3 px-5 py-3 rounded-full border bg-[#1b2232] border-[#ffffff14] hover-gradient`}
             style={{ transition: 'background .2s ease, box-shadow .2s ease, border-color .2s ease' }}
           >
             <span className={`w-4 h-4 rounded-[4px] flex items-center justify-center ${
-              enableInfographics ? 'bg-[#6c8cff]' : 'bg-[#0e1322]'
+              imageInArticle === 'yes' ? 'bg-[#6c8cff]' : 'bg-[#0e1322]'
             }`}>
-              {enableInfographics && <GiCheckMark className="text-white w-2.5 h-2.5" />}
+              {imageInArticle === 'yes' && <GiCheckMark className="text-white w-2.5 h-2.5" />}
             </span>
             <span className="text-[#eef2f7] font-bold text-xs">Infographics</span>
           </button>
@@ -886,6 +718,7 @@ seo content writing tips`}
         </VStack>
 
         {/* Special Instructions (optional) */}
+        { selectedModel === '1a-pro' && (
         <VStack align="flex-start" spacing={2} width="100%" data-tour="keyword-input" mt="16px">
           <Heading className={`font-normal text-[13px] text-[#7f8aa3]`}>Special Instructions (optional)</Heading>
           <textarea
@@ -896,6 +729,7 @@ seo content writing tips`}
               onChange={(e) => setSpecialRequests(e.target.value)}
            />
         </VStack>
+        )}
 
         {/* Action Buttons */}
         <Flex gap={4} data-tour="generate-button" mt="16px" className="flex-col md:flex-row justify-end">
@@ -935,7 +769,7 @@ seo content writing tips`}
           </p>
         }
 
-{isProcessing && !isGodMode &&
+{ isProcessing && !isGodMode &&
     <div style={{ width: "100%", marginTop: '0px' }}>
     {/* <h3>{isProcessing ? `Processing: ${currentKeyword}` : "All keywords processed!"}</h3> */}
     <div style={{ width: "100%", backgroundColor: "#f0f0f0", borderRadius: "10px" }}>
@@ -943,7 +777,7 @@ seo content writing tips`}
         style={{
           width: `${progress}%`,
           height: "5px",
-          backgroundColor: "#9decf9",
+          backgroundColor: "#3f51b5",
           borderRadius: "10px",
           transition: "width 0.5s ease-in-out",
         }}
@@ -1123,44 +957,6 @@ seo content writing tips`}
         />
       )}
 
-      <SettingsPopup
-          isOpen={isSettingsPopupOpen}
-          onClose={() => setIsSettingsPopupOpen(false)}
-          wordLimit={wordLimit}
-          setWordLimit={setWordLimit}
-          featuredImage={featuredImage}
-          setFeaturedImage={setFeaturedImage}
-          imageInArticle={imageInArticle}
-          setImageInArticle={setImageInArticle}
-          specialRequests={specialRequests}
-          setSpecialRequests={setSpecialRequests}
-       />
-
-     {isPricingPopupOpen && (
-       <PricingPopup 
-         isOpen={isPricingPopupOpen} 
-         onClose={closePricingPopup}
-         activeTab={activeTab}
-         setActiveTab={setActiveTab}
-         productData={productData} 
-         isLoadingPrice={isLoadingPrice}
-         errorPrice={errorPrice}
-         filteredPlansSubscription={filteredPlansSubscription}
-         filteredPlansLifetime={filteredPlansLifetime}
-         planData={planData}
-         countryName={countryName}
-        />
-     )}
-
-     {isTimerPopupOpen && (
-       <TimerPopup 
-         isOpen={isTimerPopupOpen} 
-         onClose={closeTimerPopup}
-         openPricingPopup={openPricingPopup}
-         isGodMode={isGodMode}
-        />
-     )}
-
       {/* Tour Guide */}
       <TourGuide
         steps={isGodMode ? articleGeneratorGodModeTourSteps : articleGeneratorTourSteps}
@@ -1177,57 +973,6 @@ seo content writing tips`}
 };
 
 export default ArticleGenerator;
-
-const TimerPopup = ({
-  isOpen,
-  onClose,
-  openPricingPopup,
-  isGodMode
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  openPricingPopup: () => void;
-  isGodMode: boolean;
-}) => {
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[725px]">
-        <div className="grid gap-4 py-4">
-          <div className="flex items-center">
-            <div style={{textAlign: 'center', width: '100%'}}>
-             { !isGodMode &&
-             <>
-              <LuTimerReset style={{fontSize: '100px', color: '#76e4f7', display: 'inline'}}/>
-              <br/><br/>
-             </>
-             } 
-             {isGodMode ? 
-             <>
-              <h3 className="text-2xl font-bold mb-4">Trial Balance has expired</h3>
-              <p>Please updgrade to generate more god mode articles.</p>
-             </>
-             :
-             <p>Credits will refill in next 24 hours</p>
-             }
-             <br/>
-             <Button
-               type="button"
-               colorScheme="brand"
-               onClick={async () => {
-                 openPricingPopup();
-                 onClose();
-               }}
-             >
-              Upgrade
-             </Button>
-            </div>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
 
 const EditPromptDialog = ({
   isOpen,
@@ -1285,835 +1030,5 @@ const EditPromptDialog = ({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
-};
-
-interface SubscriptionPlan {
-  id: number;
-  name: string;
-  productId: string;
-  priceId: string;
-  price: number;
-  features: string;
-}
-
-interface ProductData {
-  subscriptionPlans?: SubscriptionPlan[];
-  lifetimePlans?: SubscriptionPlan[]; // Add this if lifetimePlans also exists
-}
-
-interface PricingPopupProps {
-  isOpen: boolean;
-  onClose: () => void;
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
-  productData: ProductData,
-  isLoadingPrice: boolean,
-  errorPrice: Error | null,
-  filteredPlansSubscription: any[],
-  filteredPlansLifetime: any[],
-  planData: any,
-  countryName: string
-}
-
-const PricingPopup: React.FC<PricingPopupProps> = ({ isOpen, onClose, activeTab, setActiveTab, productData, isLoadingPrice, errorPrice, filteredPlansSubscription, filteredPlansLifetime, planData, countryName }) => {
-  const [processingPlan, setProcessingPlan] = useState<string | null>(null);
-  
-  // Tooltip color mode values
-  const tooltipBg = useColorModeValue("gray.800", "gray.200");
-  const tooltipColor = useColorModeValue("white", "gray.800");
-
-  const handleTabClick = (tab: string): void => {
-    setActiveTab(tab);
-  };
-
-  const payStripeSubscription = async (priceId: string, name: string) => {
-    setProcessingPlan(priceId);
-    if(countryName === 'India'){
-      try {
-        const response = await fetch("/api/subscriptions/stripe", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ priceId, name }), 
-        });
-  
-        if (!response.ok) throw new Error(`Error: ${response.status}`);
-        const { url } = await response.json();
-        window.location.href = url;
-      } catch (error:any) {
-       // console.error("Fetch error:", error);
-        return { error: error.message };
-      }
-    }else{
-      try {
-        const response = await fetch("/api/subscriptions/lemon-squeezy", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ variantId: priceId, name }), 
-        });
-  
-        if (!response.ok) throw new Error(`Error: ${response.status}`);
-        const { checkoutUrl, checkoutId } = await response.json();
-        window.location.href = checkoutUrl;
-      } catch (error:any) {
-        //console.error("Fetch error:", error);
-        return { error: error.message };
-      }
-    }
-
-  }; 
-
-  const payStripeLifetime = async (priceId: string, name: string) => {
-    setProcessingPlan(priceId);
-    if(countryName === 'India'){
-      try {
-        const response = await fetch("/api/lifetimePurchase", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ priceId, name }), 
-        });
-  
-        if (!response.ok) throw new Error(`Error: ${response.status}`);
-        const { url } = await response.json();
-        window.location.href = url;
-      } catch (error:any) {
-       // console.error("Fetch error:", error);
-        return { error: error.message };
-      }
-    }else{
-      try {
-        const response = await fetch("/api/lifetime-purchase/lemon-squeezy", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ variantId: priceId, name }), 
-        });
-  
-        if (!response.ok) throw new Error(`Error: ${response.status}`);
-        const { checkoutUrl, checkoutId } = await response.json();
-        window.location.href = checkoutUrl;
-      } catch (error:any) {
-        //console.error("Fetch error:", error);
-        return { error: error.message };
-      }
-    }
-
-  };
-
-  const bg12 = useColorModeValue('#ffffff', '#060d36');
-  const planCardBg = 'transparent';
-  const planCardBorder = useColorModeValue('gray.300', 'gray.500');
-  const tabBorderColor = useColorModeValue('gray.300', 'rgba(255,255,255,0.2)');
-  const tabTextColor = useColorModeValue('gray.700', 'white');
-
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} size="6xl" isCentered>
-      <ModalOverlay />
-      <ModalContent bgColor={bg12} maxW="900px" maxH="90vh">
-        <ModalHeader textAlign="center">Upgrade Plan</ModalHeader>
-        <ModalCloseButton />
-        <ModalBody pb={6} overflowY="auto">
-                     {/* Tabs */}
-           {/* <div className="flex justify-center mb-4">
-             <div className="flex">
-               <button 
-                 className={`px-5 py-2 font-medium border rounded-l-lg cursor-pointer
-                   ${activeTab === 'monthly' 
-                     ? 'bg-[#33d6e2] border-[#33d6e2] text-[#141824] font-semibold' 
-                     : 'bg-transparent'}`}
-                 style={{
-                   borderColor: activeTab === 'monthly' ? '#33d6e2' : tabBorderColor,
-                   color: activeTab === 'monthly' ? '#141824' : tabTextColor
-                 }}
-                 onClick={() => handleTabClick('monthly')}
-               >
-                 Monthly
-               </button>
-               <button 
-                 className={`px-5 py-2 font-medium border rounded-r-lg cursor-pointer
-                   ${activeTab === 'onetime' 
-                     ? 'bg-[#33d6e2] border-[#33d6e2] text-[#141824] font-semibold' 
-                     : 'bg-transparent'}`}
-                 style={{
-                   borderColor: activeTab === 'onetime' ? '#33d6e2' : tabBorderColor,
-                   color: activeTab === 'onetime' ? '#141824' : tabTextColor
-                 }}
-                 onClick={() => handleTabClick('onetime')}
-               >
-                 Pay-per-Credit
-               </button>
-             </div>
-           </div> */}
-<br/>
-          {/* Content Area with Plans */}
-          {activeTab === 'monthly' ? (
-            <div className="flex flex-col md:flex-row gap-4">
-              {isLoadingPrice && 'Loading plans...'}
-
-                             { filteredPlansSubscription &&
-                 filteredPlansSubscription.map((plan: {id: number; name: string; productId: string; priceId: string; price: number; features: string, currency: string}) => (
-                 <Box key={plan.id} bg={planCardBg} className="rounded-lg flex-1 p-6 relative min-h-[380px] hover:transform hover:translate-y-[-4px] hover:shadow-lg transition-all duration-300" borderColor={plan.name === 'Premium' ? '#33d6e2' : planCardBorder} borderWidth="1px" _hover={{borderColor: '#33d6e2'}}>
-                  { plan.name === 'Premium' &&
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-[#33d6e2] text-[#141824] text-xs font-semibold py-1 px-2.5 rounded-xl uppercase">
-                      Most Popular
-                    </div>
-                  }
-                  <div className="mb-4">
-                    <h3 className="font-semibold text-xl mb-2">{plan.name}</h3>
-                  </div>
-                  <div className="text-3xl font-bold my-2">
-                    <span className="text-base align-top relative top-0.5">{plan.currency === 'INR' ? '₹' : '$'}</span>{plan.price}
-                    <span className="text-sm font-normal text-[#8990a5]">/month</span>
-                  </div>
-                  <ul className="list-none p-0 my-6 mb-[70px]">
-                    {plan.features
-                      ? JSON.parse(plan.features).slice(0, 2).map((feature: string, index: number) => {
-                          const match = feature.match(/^(\d+|Unlimited)\s(.+)$/); // Extracts number and text part
-                          return (
-                            <li key={index} className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-                              <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-                              {match ? (
-                                <span>
-                                  <span className="text-[#33d6e2] font-medium">{match[1]}</span> {match[2]}
-                                </span>
-                              ) : (
-                                <span>{feature}</span> // If no number detected, show feature as is
-                              )}
-                            </li>
-                          );
-                        })
-                      : null}
-                    <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-                      <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-                      <Flex align="center" gap={2}>
-                        <span>SERP Analysis</span>
-                        <Tooltip 
-                          label="Analyzes top-ranking pages to identify what content performs best for your target keyword."
-                          placement="top"
-                          hasArrow
-                          bg={tooltipBg}
-                          color={tooltipColor}
-                          fontSize="sm"
-                          px={3}
-                          py={2}
-                          borderRadius="md"
-                          sx={{
-                            bg: tooltipBg + " !important",
-                            color: tooltipColor + " !important",
-                          }}
-                        >
-                          <Box display="inline-flex" alignItems="center">
-                            <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-                          </Box>
-                        </Tooltip>
-                      </Flex>
-                    </li>
-                    <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-                      <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-                      <Flex align="center" gap={2}>
-                        <span>Keyword Intent Analysis</span>
-                        <Tooltip 
-                          label="Analyzes the search intent behind your target keyword to create content that matches user expectations."
-                          placement="top"
-                          hasArrow
-                          bg={tooltipBg}
-                          color={tooltipColor}
-                          fontSize="sm"
-                          px={3}
-                          py={2}
-                          borderRadius="md"
-                          sx={{
-                            bg: tooltipBg + " !important",
-                            color: tooltipColor + " !important",
-                          }}
-                        >
-                          <Box display="inline-flex" alignItems="center">
-                            <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-                          </Box>
-                        </Tooltip>
-                      </Flex>
-                    </li>
-                    <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-                      <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-                      <Flex align="center" gap={2}>
-                        <span>Deep Research</span>
-                        <Tooltip 
-                          label="We break down your query, analyze hundreds of reliable sources, and produce fact-checked, accurate articles with zero hallucination."
-                          placement="top"
-                          hasArrow
-                          bg={tooltipBg}
-                          color={tooltipColor}
-                          fontSize="sm"
-                          px={3}
-                          py={2}
-                          borderRadius="md"
-                          sx={{
-                            bg: tooltipBg + " !important",
-                            color: tooltipColor + " !important",
-                          }}
-                        >
-                          <Box display="inline-flex" alignItems="center">
-                            <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-                          </Box>
-                        </Tooltip>
-                      </Flex>
-                    </li>
-                    <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-                      <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-                      <Flex align="center" gap={2}>
-                        <span>Images & Infographics</span>
-                        <Tooltip 
-                          label="Automatically generates and includes relevant images and infographics to enhance your content."
-                          placement="top"
-                          hasArrow
-                          bg={tooltipBg}
-                          color={tooltipColor}
-                          fontSize="sm"
-                          px={3}
-                          py={2}
-                          borderRadius="md"
-                          sx={{
-                            bg: tooltipBg + " !important",
-                            color: tooltipColor + " !important",
-                          }}
-                        >
-                          <Box display="inline-flex" alignItems="center">
-                            <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-                          </Box>
-                        </Tooltip>
-                      </Flex>
-                    </li>
-                    <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-                      <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-                      <Flex align="center" gap={2}>
-                        <span>AI SEO Optimization</span>
-                        <Tooltip 
-                          label="Optimizes content structure, headings, and keywords for better search engine rankings."
-                          placement="top"
-                          hasArrow
-                          bg={tooltipBg}
-                          color={tooltipColor}
-                          fontSize="sm"
-                          px={3}
-                          py={2}
-                          borderRadius="md"
-                          sx={{
-                            bg: tooltipBg + " !important",
-                            color: tooltipColor + " !important",
-                          }}
-                        >
-                          <Box display="inline-flex" alignItems="center">
-                            <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-                          </Box>
-                        </Tooltip>
-                      </Flex>
-                    </li>
-                    <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-                      <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-                      <Flex align="center" gap={2}>
-                        <span>Bulk Writing Mode</span>
-                        <Tooltip 
-                          label="Generate multiple articles at once with batch processing capabilities for maximum efficiency."
-                          placement="top"
-                          hasArrow
-                          bg={tooltipBg}
-                          color={tooltipColor}
-                          fontSize="sm"
-                          px={3}
-                          py={2}
-                          borderRadius="md"
-                          sx={{
-                            bg: tooltipBg + " !important",
-                            color: tooltipColor + " !important",
-                          }}
-                        >
-                          <Box display="inline-flex" alignItems="center">
-                            <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-                          </Box>
-                        </Tooltip>
-                      </Flex>
-                    </li>
-                    <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-                      <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-                      <Flex align="center" gap={2}>
-                        <span>WordPress Integration</span>
-                        <Tooltip 
-                          label="Seamlessly publish articles directly to your WordPress site with one-click integration."
-                          placement="top"
-                          hasArrow
-                          bg={tooltipBg}
-                          color={tooltipColor}
-                          fontSize="sm"
-                          px={3}
-                          py={2}
-                          borderRadius="md"
-                          sx={{
-                            bg: tooltipBg + " !important",
-                            color: tooltipColor + " !important",
-                          }}
-                        >
-                          <Box display="inline-flex" alignItems="center">
-                            <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-                          </Box>
-                        </Tooltip>
-                      </Flex>
-                    </li>
-                    <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-                      <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-                      <Flex align="center" gap={2}>
-                        <span>Semantic SEO</span>
-                        <Tooltip 
-                          label="Enriches content with related terms and entities to improve topical authority."
-                          placement="top"
-                          hasArrow
-                          bg={tooltipBg}
-                          color={tooltipColor}
-                          fontSize="sm"
-                          px={3}
-                          py={2}
-                          borderRadius="md"
-                          sx={{
-                            bg: tooltipBg + " !important",
-                            color: tooltipColor + " !important",
-                          }}
-                        >
-                          <Box display="inline-flex" alignItems="center">
-                            <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-                          </Box>
-                        </Tooltip>
-                      </Flex>
-                    </li>
-                    <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-                      <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-                      <Flex align="center" gap={2}>
-                        <span>High EEAT Score</span>
-                        <Tooltip 
-                          label="Includes citations, outbound links, semantic structure, and first-person insights for authoritative, trustworthy content."
-                          placement="top"
-                          hasArrow
-                          bg={tooltipBg}
-                          color={tooltipColor}
-                          fontSize="sm"
-                          px={3}
-                          py={2}
-                          borderRadius="md"
-                          sx={{
-                            bg: tooltipBg + " !important",
-                            color: tooltipColor + " !important",
-                          }}
-                        >
-                          <Box display="inline-flex" alignItems="center">
-                            <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-                          </Box>
-                        </Tooltip>
-                      </Flex>
-                    </li>
-                    <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-                      <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-                      <span>
-                        {plan.name === 'Pro' ? 'Email Support' : 'Priority Support'}
-                      </span>
-                    </li>
-                  </ul>
-                  <button  
-                    onClick={() => payStripeSubscription(plan.priceId, plan.name)} 
-                    className="absolute bottom-6 left-6 right-6 bg-[#33d6e2] text-[#141824] border-none rounded-lg py-3 font-semibold cursor-pointer hover:opacity-90 hover:transform hover:translate-y-[-2px] transition-all duration-200"
-                    disabled={processingPlan === plan.priceId}
-                  >
-                    { 
-                      planData?.SubscriptionPlan && planData.SubscriptionPlan.planId === plan.id ?
-                      'Current Plan'
-                      :
-                      <>
-                      { processingPlan === plan.priceId ? 'Processing Payment...' : 'Upgrade Now'}
-                      </>
-                    }
-                  </button>
-                </Box>
-                ))
-              }            
-            </div>
-          ) : (
-            <div className="flex flex-col md:flex-row gap-4">
-              { filteredPlansLifetime &&
-                filteredPlansLifetime.map((plan: {id: number; name: string; productId: string; priceId: string; price: number; features: string, currency: string}) => (
-                <Box key={plan.id} bg={planCardBg} className="rounded-lg flex-1 p-6 relative min-h-[380px] hover:transform hover:translate-y-[-4px] hover:shadow-lg transition-all duration-300" borderColor={plan.name === 'Premium' ? '#33d6e2' : planCardBorder} borderWidth="1px" _hover={{borderColor: '#33d6e2'}}>
-                  { plan.name === 'Premium' &&
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-[#33d6e2] text-[#141824] text-xs font-semibold py-1 px-2.5 rounded-xl uppercase">
-                      Most Popular
-                    </div>
-                  }
-                  <div className="mb-4">
-                    <h3 className="font-semibold text-xl mb-2">{plan.name}</h3>
-                  </div>
-                  <div className="text-3xl font-bold my-2">
-                    <span className="text-base align-top relative top-0.5">{plan.currency === 'INR' ? '₹' : '$'}</span>{plan.price}
-                    <span className="text-sm font-normal text-[#8990a5]"></span>
-                  </div>
-                  <ul className="list-none p-0 my-6 mb-[70px]">
-                    {plan.features
-                      ? JSON.parse(plan.features).slice(0, 2).map((feature: string, index: number) => {
-                          const match = feature.match(/^(\d+|Unlimited)\s(.+)$/); // Extracts number and text part
-                          return (
-                            <li key={index} className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-                              <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-                              {match ? (
-                                <span>
-                                  <span className="text-[#33d6e2] font-medium">{match[1]}</span> {match[2]}
-                                </span>
-                              ) : (
-                                <span>{feature}</span> // If no number detected, show feature as is
-                              )}
-                            </li>
-                          );
-                        })
-                      : null}
-                    <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-                      <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-                      <Flex align="center" gap={2}>
-                        <span>SERP Analysis</span>
-                        <Tooltip 
-                          label="Analyzes top-ranking pages to identify what content performs best for your target keyword."
-                          placement="top"
-                          hasArrow
-                          bg={tooltipBg}
-                          color={tooltipColor}
-                          fontSize="sm"
-                          px={3}
-                          py={2}
-                          borderRadius="md"
-                          sx={{
-                            bg: tooltipBg + " !important",
-                            color: tooltipColor + " !important",
-                          }}
-                        >
-                          <Box display="inline-flex" alignItems="center">
-                            <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-                          </Box>
-                        </Tooltip>
-                      </Flex>
-                    </li>
-                    <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-                      <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-                      <Flex align="center" gap={2}>
-                        <span>Keyword Intent Analysis</span>
-                        <Tooltip 
-                          label="Analyzes the search intent behind your target keyword to create content that matches user expectations."
-                          placement="top"
-                          hasArrow
-                          bg={tooltipBg}
-                          color={tooltipColor}
-                          fontSize="sm"
-                          px={3}
-                          py={2}
-                          borderRadius="md"
-                          sx={{
-                            bg: tooltipBg + " !important",
-                            color: tooltipColor + " !important",
-                          }}
-                        >
-                          <Box display="inline-flex" alignItems="center">
-                            <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-                          </Box>
-                        </Tooltip>
-                      </Flex>
-                    </li>
-                    <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-                      <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-                      <Flex align="center" gap={2}>
-                        <span>Deep Research</span>
-                        <Tooltip 
-                          label="We break down your query, analyze hundreds of reliable sources, and produce fact-checked, accurate articles with zero hallucination."
-                          placement="top"
-                          hasArrow
-                          bg={tooltipBg}
-                          color={tooltipColor}
-                          fontSize="sm"
-                          px={3}
-                          py={2}
-                          borderRadius="md"
-                          sx={{
-                            bg: tooltipBg + " !important",
-                            color: tooltipColor + " !important",
-                          }}
-                        >
-                          <Box display="inline-flex" alignItems="center">
-                            <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-                          </Box>
-                        </Tooltip>
-                      </Flex>
-                    </li>
-                    <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-                      <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-                      <Flex align="center" gap={2}>
-                        <span>Images & Infographics</span>
-                        <Tooltip 
-                          label="Automatically generates and includes relevant images and infographics to enhance your content."
-                          placement="top"
-                          hasArrow
-                          bg={tooltipBg}
-                          color={tooltipColor}
-                          fontSize="sm"
-                          px={3}
-                          py={2}
-                          borderRadius="md"
-                          sx={{
-                            bg: tooltipBg + " !important",
-                            color: tooltipColor + " !important",
-                          }}
-                        >
-                          <Box display="inline-flex" alignItems="center">
-                            <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-                          </Box>
-                        </Tooltip>
-                      </Flex>
-                    </li>
-                    <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-                      <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-                      <Flex align="center" gap={2}>
-                        <span>AI SEO Optimization</span>
-                        <Tooltip 
-                          label="Optimizes content structure, headings, and keywords for better search engine rankings."
-                          placement="top"
-                          hasArrow
-                          bg={tooltipBg}
-                          color={tooltipColor}
-                          fontSize="sm"
-                          px={3}
-                          py={2}
-                          borderRadius="md"
-                          sx={{
-                            bg: tooltipBg + " !important",
-                            color: tooltipColor + " !important",
-                          }}
-                        >
-                          <Box display="inline-flex" alignItems="center">
-                            <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-                          </Box>
-                        </Tooltip>
-                      </Flex>
-                    </li>
-                    <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-                      <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-                      <Flex align="center" gap={2}>
-                        <span>Bulk Writing Mode</span>
-                        <Tooltip 
-                          label="Generate multiple articles at once with batch processing capabilities for maximum efficiency."
-                          placement="top"
-                          hasArrow
-                          bg={tooltipBg}
-                          color={tooltipColor}
-                          fontSize="sm"
-                          px={3}
-                          py={2}
-                          borderRadius="md"
-                          sx={{
-                            bg: tooltipBg + " !important",
-                            color: tooltipColor + " !important",
-                          }}
-                        >
-                          <Box display="inline-flex" alignItems="center">
-                            <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-                          </Box>
-                        </Tooltip>
-                      </Flex>
-                    </li>
-                    <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-                      <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-                      <Flex align="center" gap={2}>
-                        <span>WordPress Integration</span>
-                        <Tooltip 
-                          label="Seamlessly publish articles directly to your WordPress site with one-click integration."
-                          placement="top"
-                          hasArrow
-                          bg={tooltipBg}
-                          color={tooltipColor}
-                          fontSize="sm"
-                          px={3}
-                          py={2}
-                          borderRadius="md"
-                          sx={{
-                            bg: tooltipBg + " !important",
-                            color: tooltipColor + " !important",
-                          }}
-                        >
-                          <Box display="inline-flex" alignItems="center">
-                            <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-                          </Box>
-                        </Tooltip>
-                      </Flex>
-                    </li>
-                    <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-                      <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-                      <Flex align="center" gap={2}>
-                        <span>Semantic SEO</span>
-                        <Tooltip 
-                          label="Enriches content with related terms and entities to improve topical authority."
-                          placement="top"
-                          hasArrow
-                          bg={tooltipBg}
-                          color={tooltipColor}
-                          fontSize="sm"
-                          px={3}
-                          py={2}
-                          borderRadius="md"
-                          sx={{
-                            bg: tooltipBg + " !important",
-                            color: tooltipColor + " !important",
-                          }}
-                        >
-                          <Box display="inline-flex" alignItems="center">
-                            <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-                          </Box>
-                        </Tooltip>
-                      </Flex>
-                    </li>
-                    <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-                      <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-                      <Flex align="center" gap={2}>
-                        <span>High EEAT Score</span>
-                        <Tooltip 
-                          label="Includes citations, outbound links, semantic structure, and first-person insights for authoritative, trustworthy content."
-                          placement="top"
-                          hasArrow
-                          bg={tooltipBg}
-                          color={tooltipColor}
-                          fontSize="sm"
-                          px={3}
-                          py={2}
-                          borderRadius="md"
-                          sx={{
-                            bg: tooltipBg + " !important",
-                            color: tooltipColor + " !important",
-                          }}
-                        >
-                          <Box display="inline-flex" alignItems="center">
-                            <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-                          </Box>
-                        </Tooltip>
-                      </Flex>
-                    </li>
-                    <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-                      <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-                      <span>
-                        {plan.name === 'Pro' ? 'Email Support' : 'Priority Support'}
-                      </span>
-                    </li>
-                  </ul>
-                  <button  
-                    onClick={() => payStripeLifetime(plan.priceId, plan.name)} 
-                    className="absolute bottom-6 left-6 right-6 bg-[#33d6e2] text-[#141824] border-none rounded-lg py-3 font-semibold cursor-pointer hover:opacity-90 hover:transform hover:translate-y-[-2px] transition-all duration-200"
-                    disabled={processingPlan === plan.priceId}
-                  >
-                    { processingPlan === plan.priceId ? 'Processing Payment...' : 'Upgrade Now'}
-                  </button>
-                </Box>
-                ))
-              }
-            </div>
-          )}
-        </ModalBody>
-
-        <ModalFooter justifyContent="center" textAlign="center" fontSize="sm">
-          All plans include a 7-day money-back guarantee. Need help choosing? Contact our support team.
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
-  );
-};
-
-const SettingsPopup = ({
-  isOpen,
-  onClose,
-  wordLimit,
-  setWordLimit,
-  featuredImage,
-  setFeaturedImage,
-  imageInArticle,
-  setImageInArticle,
-  specialRequests,
-  setSpecialRequests
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  wordLimit: string;
-  setWordLimit: (value: string) => void;
-  featuredImage: string;
-  setFeaturedImage: (value: string) => void;
-  imageInArticle: string;
-  setImageInArticle: (value: string) => void;
-  specialRequests: string;
-  setSpecialRequests: (value: string) => void;
-}) => {
-
-  const bg12 = useColorModeValue('white', '#060d36');
-
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} isCentered>
-      <ModalOverlay />
-      <ModalContent bgColor={bg12}>
-        <ModalHeader>Advanced Settings</ModalHeader>
-        <ModalCloseButton />
-        <ModalBody pb={6}>
-          <FormControl>
-            <FormLabel>Word Limit</FormLabel>
-            <Select value={wordLimit} mb={3} onChange={(e) => setWordLimit(e.target.value)}>
-              <option value="1000">Under 1000 words</option>
-              <option value="2000">Under 2000 words</option>
-              <option value="3000">Under 3000 words</option>
-              <option value="4000">Under 4000 words</option>
-            </Select>
-          </FormControl>
-
-          <FormControl mt={4}>
-            <FormLabel>Featured Image Generation</FormLabel>
-            <Select value={featuredImage} onChange={(e) => setFeaturedImage(e.target.value)} mb={3}>
-              <option value="yes">Yes</option>
-              <option value="no">No</option>
-            </Select>
-          </FormControl>
-
-          <FormControl mt={4}>
-            <FormLabel>Image in Article</FormLabel>
-            <Select 
-              value={imageInArticle} 
-              onChange={(e) => setImageInArticle(e.target.value)} 
-              mb={3}
-            >
-              <option value="yes">Yes</option>
-              <option value="no">No</option>
-            </Select>
-          </FormControl>
-
-          <FormControl mt={4}>
-            <FormLabel>
-              <Flex alignItems="center" gap={1}>
-                <Tooltip 
-                  label="You can tell the smart AI generation engine anything you want in the article. Eg. Make sure the article is specific to Germany or I want you to link to my website ABCD.com in a non promotional manner so that people click on it."
-                  hasArrow
-                  placement="top"
-                >
-                  <Box>
-                    <FiInfo />
-                  </Box>
-                </Tooltip>
-                Special Requests (Optional)
-              </Flex>
-            </FormLabel>
-            <Textarea
-              placeholder="Example - Mention my Brand ABCD.com as the most preferred or top ranked option wherever applicable"
-              value={specialRequests}
-              onChange={(e) => setSpecialRequests(e.target.value)}
-              size="sm"
-            />
-          </FormControl>
-        </ModalBody>
-
-        <ModalFooter>
-          <Button colorScheme="blue" mr={3} onClick={onClose}>
-            Done
-          </Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
   );
 };

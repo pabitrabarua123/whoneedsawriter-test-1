@@ -1,13 +1,16 @@
 import TeamSwitcher from "./components/team-switcher";
 import { UserNav } from "./components/user-nav";
-import { useUser } from "@/hooks/useUser";
 import { User } from "@prisma/client";
+import {useContext} from "react";
+import { UserContext, UserContextType } from "@/app/customProviders/UserProvider";
+import { PricingPopupContext } from "@/app/PricingPopupProvider";
 
 const DashboardHeader = () => {
-   const { user, isLoading } = useUser();
-    
-    // Calculate total credits
-    const totalCredits = ((user as User)?.freeCredits || 0) + ((user as User)?.monthyBalance || 0) + ((user as User)?.lifetimeBalance || 0);
+
+  const { user, isLoading, error } = useContext(UserContext) as UserContextType;
+  const totalCredits = ((user as User)?.freeCredits || 0) + ((user as User)?.monthyBalance || 0) + ((user as User)?.lifetimeBalance || 0);
+  
+  const { onOpen: onPricingPopupOpen } = useContext(PricingPopupContext);
 
     return (
         <div className="border-b" style={{backgroundColor: '#080a0f80', height: '80px', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000, backdropFilter: 'blur(8px)'}}>
@@ -20,7 +23,9 @@ const DashboardHeader = () => {
               <span className="text-white font-medium text-sm mr-2">
                 {isLoading ? "..." : totalCredits.toFixed(1)}
               </span>
-              <button className="ml-3 bg-[transparent] text-[#eef2f7] hover:bg-[#13161b] border border-[#ffffff14] text-xs font-medium px-3 py-2 rounded-full transition-colors" style={{boxShadow: '0 10px 30px rgba(0,0,0,.35)'}}>
+              <button 
+               onClick={() => onPricingPopupOpen()}
+               className="ml-3 bg-[transparent] text-[#eef2f7] hover:bg-[#13161b] border border-[#ffffff14] text-xs font-medium px-3 py-2 rounded-full transition-colors" style={{boxShadow: '0 10px 30px rgba(0,0,0,.35)'}}>
                 Buy More
               </button>
             </div>

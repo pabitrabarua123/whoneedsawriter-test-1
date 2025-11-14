@@ -13,5 +13,6 @@ export enum Routes {
   articles = "/articles",
   account = "/account",
   batch = "/batch",
-  apiKeys = "/developer/api"
+  apiKeys = "/developer/api",
+  pricing = "/pricing",
 }

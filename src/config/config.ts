@@ -13,7 +13,7 @@ export const openGraphImageUrl = "https://whoneedsawriter.com/images/og-image.jp
 export const blogOpenGraphImageUrl = "https://whoneedsawriter.com/images/og-image.jpg";
 
 // the users will be redirected to this page after sign in
-export const signInCallbackUrl = "/dashboard";
+export const signInCallbackUrl = "/article-generator";
 
 // only needed if you have the "talk to us" button in the landing page
 export const demoCalendlyLink = "https://calendly.com/whoneedsawriter/15min";

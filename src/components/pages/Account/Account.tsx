@@ -28,11 +28,7 @@ import toast from "react-hot-toast";
 import { TbFileText, TbBolt, TbCrown, TbCreditCard } from "react-icons/tb";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-
-export const metadata: Metadata = {
-  title: "Dashboard",
-  description: "Example dashboard app built using the components.",
-};
+import DashboardHeader from "@/components/organisms/DashboardHeader/DashboardHeader";
 
 /*
   For more layout examples, check out:
@@ -303,17 +299,11 @@ export const Account = () => {
         <div className="flex-col w-full">
           <div className="border-b">
             <div className="flex h-16 items-center px-4">
-              <TeamSwitcher />
-
-              <div className="ml-auto flex items-center space-x-4">
-                {/* <Search /> */}
-                <UserNav />
-              </div>
+              <DashboardHeader />
             </div>
           </div>
-          <div className="flex-1 space-y-4 p-8 pt-6">
-            
 
+          <div className="flex-1 space-y-4 p-8 pt-17">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

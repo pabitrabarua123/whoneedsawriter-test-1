@@ -61,6 +61,7 @@ export async function GET() {
             id: true,
             keyword: true,
             batchId: true,
+            model: true,
             userId: true,
             featuredImageRequired: true,
             additionalImageRequired: true,
@@ -70,6 +71,21 @@ export async function GET() {
         });
 
         if (!fullArticle) return null;
+        
+        let webhookUrl = '';
+        if (fullArticle.model === '1a-core') {
+          webhookUrl = 'https://hook.eu2.make.com/vso0bspbhsfe96133qtjcv18gmzkfdjp';
+        } 
+        if (fullArticle.model === '1a-pro') {
+          webhookUrl = 'https://hook.eu2.make.com/u0yss4lheap5qezqxgo3bcmhnhif517x';
+        }
+         if (fullArticle.model === '1a-lite') {
+          webhookUrl = 'https://hook.eu2.make.com/w6wafhcbrnvlmz8jiedqgztbl4onqb5v';
+        }
+        if (!webhookUrl) {
+          console.error(`❌ No webhook URL found for model ${fullArticle.model}`);
+          return null;
+        }
 
         // Prepare form data for make.com API
         const params = new URLSearchParams();
@@ -97,20 +113,19 @@ export async function GET() {
           params.append('comment', '.');
         }
 
-
         console.log(params.toString());
+        console.log(webhookUrl);
         // Fire-and-forget API call to make.com (don't await the response)
-        axios.post('https://hook.eu2.make.com/u0yss4lheap5qezqxgo3bcmhnhif517x', params.toString(), {
-          headers: { 
-            'Content-Type': 'application/x-www-form-urlencoded' 
-          },
-          timeout: 5000 // Shorter timeout
-        }).then(() => {
-          console.log(`✅ Successfully sent request to make.com for article ${fullArticle.id} (keyword: ${fullArticle.keyword})`);
-        }).catch((error) => {
-          console.error(`❌ Make.com API call failed for article ${fullArticle.id}:`, error.message);
-          // Don't reset requestProcess here since we already marked it as processed
-        });
+        // axios.post(webhookUrl, params.toString(), {
+        //   headers: { 
+        //     'Content-Type': 'application/x-www-form-urlencoded' 
+        //   },
+        //   timeout: 5000 // Shorter timeout
+        // }).then(() => {
+        //   console.log(`✅ Successfully sent request to make.com for article ${fullArticle.id} (keyword: ${fullArticle.keyword})`);
+        // }).catch((error) => {
+        //   console.error(`❌ Make.com API call failed for article ${fullArticle.id}:`, error.message);
+        // });
 
         // Add batch to set for checking completion
         processedBatches.add(fullArticle.batchId);

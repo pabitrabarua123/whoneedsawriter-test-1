@@ -177,6 +177,7 @@ model GodmodeArticles {
   userId                  String
   keyword                 String
   content                 String?
+  model                   String?
   featuredImage           String?
   svgUrl                  String?
   metaTitle               String?

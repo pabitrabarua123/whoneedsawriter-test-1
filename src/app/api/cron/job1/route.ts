@@ -59,12 +59,13 @@ export async function GET() {
       pendingArticlesInDB.map(async (pa) => {
         const godmodeArticle = await prismaClient.godmodeArticles.findUnique({
           where: { id: pa.godmodeArticleId },
-          select: { content: true, id: true },
+          select: { content: true, id: true, model: true },
         });
         return {
           pendingArticle: pa,
           godmodeArticleId: godmodeArticle?.id,
           hasContent: !!godmodeArticle?.content,
+          model: godmodeArticle?.model,
         };
       })
     );
@@ -83,24 +84,43 @@ export async function GET() {
         const newlyCompletedCount = readyArticles.length;
         failedCount = notReadyArticles.length;
 
-        // Refund logic based on user's plan
+        // Refund logic based on user's plan and article model
+        // Note: All failed articles in a batch have the same model
         if (failedCount > 0) {
           const user = await tx.user.findUnique({ where: { id: batch.userId } });
           if (user) {
+            // Calculate credits per model
+            const getCreditsPerModel = (model: string | null | undefined): number => {
+              switch (model) {
+                case '1a-lite': return 0.1;
+                case '1a-core': return 1;
+                case '1a-pro': return 2;
+                default: return 1; // Default to 1 credit for unknown models
+              }
+            };
+
+            // Since all failed articles in a batch have the same model,
+            // get the model from the first failed article
+            const failedModel = notReadyArticles[0]?.model || null;
+            const creditPerArticle = getCreditsPerModel(failedModel);
+            const totalRefundCredits = creditPerArticle * failedCount;
+            
+            console.log(`Batch ${batch.id}: Refunding ${failedCount} failed articles (model: ${failedModel || 'unknown'}, ${creditPerArticle} credits each) = ${totalRefundCredits} total credits`);
+            
             if (user.monthyPlan > 0) {
               await tx.user.update({
                 where: { id: batch.userId },
-                data: { monthyBalance: user.monthyBalance + failedCount }
+                data: { monthyBalance: user.monthyBalance + totalRefundCredits }
               });
             } else if (user.lifetimePlan > 0) {
               await tx.user.update({
                 where: { id: batch.userId },
-                data: { lifetimeBalance: user.lifetimeBalance + failedCount }
+                data: { lifetimeBalance: user.lifetimeBalance + totalRefundCredits }
               });
             } else {
               await tx.user.update({
                 where: { id: batch.userId },
-                data: { freeCredits: user.freeCredits + failedCount }
+                data: { freeCredits: user.freeCredits + totalRefundCredits }
               });
             }
           }
@@ -276,12 +296,26 @@ export async function GET() {
         const fullArticle = await prismaClient.godmodeArticles.findUnique({
           where: { id: articleData.pendingArticle.godmodeArticleId },
           select: {
+            model: true,
             featuredImageRequired: true,
             additionalImageRequired: true,
             wordLimit: true,
             comment: true,
           }
         });
+
+        let webhookUrl = '';
+        if (fullArticle?.model === '1a-core') {
+          webhookUrl = 'https://hook.eu2.make.com/vso0bspbhsfe96133qtjcv18gmzkfdjp';
+        } 
+        if (fullArticle?.model === '1a-pro') {
+          webhookUrl = 'https://hook.eu2.make.com/u0yss4lheap5qezqxgo3bcmhnhif517x';
+        }
+         if (fullArticle?.model === '1a-lite') {
+          webhookUrl = 'https://hook.eu2.make.com/w6wafhcbrnvlmz8jiedqgztbl4onqb5v';
+        }
+
+        console.log(webhookUrl);
 
         const params = new URLSearchParams();
         params.append('keyword', articleData.pendingArticle.keywordId);
@@ -311,11 +345,11 @@ export async function GET() {
 
         console.log(params.toString());
 
-        fetch('https://hook.eu2.make.com/u0yss4lheap5qezqxgo3bcmhnhif517x', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: params.toString()
-        });
+        // fetch(webhookUrl, {
+        //   method: 'POST',
+        //   headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        //   body: params.toString()
+        // });
 
         console.log(`Batch ${batch.id}: Made API call for pending article ${articleData.pendingArticle.godmodeArticleId} (keyword: ${articleData.pendingArticle.keywordId})`);
       }
@@ -399,12 +433,26 @@ export async function GET() {
           const fullArticle = await prismaClient.godmodeArticles.findUnique({
             where: { id: articleData.pendingArticle.godmodeArticleId },
             select: {
+              model: true,
               featuredImageRequired: true,
               additionalImageRequired: true,
               wordLimit: true,
               comment: true,
             }
           });
+
+          let webhookUrl = '';
+          if (fullArticle?.model === '1a-core') {
+            webhookUrl = 'https://hook.eu2.make.com/vso0bspbhsfe96133qtjcv18gmzkfdjp';
+          } 
+          if (fullArticle?.model === '1a-pro') {
+            webhookUrl = 'https://hook.eu2.make.com/u0yss4lheap5qezqxgo3bcmhnhif517x';
+          }
+          if (fullArticle?.model === '1a-lite') {
+            webhookUrl = 'https://hook.eu2.make.com/w6wafhcbrnvlmz8jiedqgztbl4onqb5v';
+          }
+
+          console.log(webhookUrl);
 
           const params = new URLSearchParams();
           params.append('keyword', articleData.pendingArticle.keywordId);
@@ -434,11 +482,11 @@ export async function GET() {
 
           console.log(params.toString());
 
-          fetch('https://hook.eu2.make.com/u0yss4lheap5qezqxgo3bcmhnhif517x', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: params.toString()
-          });
+          // fetch(webhookUrl, {
+          //   method: 'POST',
+          //   headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          //   body: params.toString()
+          // });
 
           console.log(`Batch ${batch.id}: Made API call for pending article ${articleData.pendingArticle.godmodeArticleId} (keyword: ${articleData.pendingArticle.keywordId})`);
         }

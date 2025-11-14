@@ -14,11 +14,11 @@ import { SessionProvider } from "next-auth/react";
 import { Toaster } from "react-hot-toast";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import { PricingPopupProvider } from "./PricingPopupProvider";
-import { PricingPopupContext } from "./PricingPopupProvider";
 export const queryClient = new QueryClient();
+import { UserProvider } from "./customProviders/UserProvider";
 
 // Custom hook to handle route changes and cancel queries
 export function useRouteChangeHandler() {
@@ -57,24 +57,26 @@ export function Providers({
       <CrispChat />
       <LemonSqueezyAffiliateScript />
       <QueryClientProvider client={queryClient}>
-        <CacheProvider>
-          <NextThemesProvider
-            attribute="class"
-            defaultTheme={uiColorMode}
-            enableSystem
-          >
-            <ColorModeScript initialColorMode={uiColorMode} />
-            <RouteChangeHandler />
-            <ChakraProvider
-              theme={theme}
-              colorModeManager={cookieStorageManager}
+        <UserProvider>
+          <CacheProvider>
+            <NextThemesProvider
+              attribute="class"
+              defaultTheme={uiColorMode}
+              enableSystem
             >
-               <PricingPopupProvider>
-               {children}
-               </PricingPopupProvider>
-            </ChakraProvider>
-          </NextThemesProvider>
-        </CacheProvider>
+              <ColorModeScript initialColorMode={uiColorMode} />
+              <RouteChangeHandler />
+              <ChakraProvider
+                theme={theme}
+                colorModeManager={cookieStorageManager}
+              >
+                 <PricingPopupProvider>
+                 {children}
+                 </PricingPopupProvider>
+              </ChakraProvider>
+            </NextThemesProvider>
+          </CacheProvider>
+        </UserProvider>
       </QueryClientProvider>
     </SessionProvider>
   );
