@@ -113,7 +113,7 @@ export async function GET() {
           params.append('comment', '.');
         }
 
-        console.log(params.toString()); 
+        console.log(params.toString());
         console.log(webhookUrl);
         // Fire-and-forget API call to make.com (don't await the response)
         // axios.post(webhookUrl, params.toString(), {
