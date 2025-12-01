@@ -449,6 +449,16 @@ const start25MinLoader = () => {
 
   const selectedOption = modelOptions.find(option => option.value === selectedModel) || modelOptions[1];
 
+  // Credit cost calculation based on selected model
+  const perArticleCredit =
+    selectedModel === "1a-lite"
+      ? 0.1
+      : selectedModel === "1a-core"
+      ? 1
+      : 2; // 1a-pro
+
+  const totalCredits = Number((lines.length * perArticleCredit).toFixed(2));
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -560,7 +570,7 @@ const start25MinLoader = () => {
         <VStack align="flex-start" spacing={2} width="100%">
          <Heading size="lg" color="#eef2f7">What do you want to write today?</Heading>
           <Text className="text-[#a9b1c3] text-md">
-          Describe your topic or paste keywords.
+          Enter your Topic or Keywords
           </Text>
         </VStack>
         {/* Mode Selection and Balance Section */}
@@ -845,17 +855,54 @@ seo content writing tips`}
               value={text}
               onChange={(e) => setText(e.target.value)}
              />
-          { lines.length > 0 &&
-           <Text className="text-[#7f8aa3] text-[13px]">
-            Keywords Added: {lines.length} | 
-            Estimated Time: 
-            { !isGodMode ? 
-              lines.length*30 > 60 ? lines.length*30/60 + ' minutes' : lines.length*30 + ' seconds'
-              :
-              '15 minutes'
-            }
+          { lines.length > 0 && (
+            <Text
+              className="inline-flex items-center justify-between gap-4 px-4 py-2 mt-2 rounded-full bg-[#1b2232] border border-[#ffffff14] text-[13px] text-[#eef2f7]"
+            >
+              <span className="flex items-center gap-2">
+                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-[#1f2937]">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M7 3H17C18.1046 3 19 3.89543 19 5V19C19 20.1046 18.1046 21 17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3Z"
+                      stroke="#f97316"
+                      strokeWidth="1.6"
+                    />
+                    <path
+                      d="M9 7H15"
+                      stroke="#f97316"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M9 11H15"
+                      stroke="#f97316"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </span>
+                <span>
+                  {lines.length} {lines.length === 1 ? 'keyword' : 'keywords'} added
+                </span>
+              </span>
+
+              <span className="flex items-center gap-2 text-[#cbd5f5]">
+                <span role="img" aria-label="timer">⏱️</span>
+                <span>
+                  ~
+                  {!isGodMode
+                    ? `${lines.length * 5} min`
+                    : '15 min'}
+                </span>
+              </span>
             </Text>
-          }
+          )}
         </VStack>
 
         {/* Special Instructions (optional) */}
@@ -873,34 +920,96 @@ seo content writing tips`}
         )}
 
         {/* Action Buttons */}
-        <Flex gap={4} data-tour="generate-button" mt="16px" className="flex-col md:flex-row justify-end">
-          <Button
-            variant="outline"
-            borderColor="gray.600"
-            className="text-[13px]"
-            _hover={{ borderColor: "gray.500" }}
-            onClick={() => setText('')}
-            disabled={isProcessing}
-            rounded="lg"
-            px={4}
-            color="#eef2f7"
-          >
-            Clear
-          </Button>
-          <Button
-            colorScheme="brand"
-            px={4}
-            rounded="lg"
-            _hover={{ bg: "blue.700", color: "white" }}
-            onClick={() =>
-              isGodMode
-                ? sendKeywordsSequentiallyGodmode(lines)
-                : sendKeywordsSequentially(lines)
-            }
-            disabled={isProcessing}
-          >
-            {isProcessing ? 'Generating...' : '✨ Generate Article(s)'}
-          </Button>
+        <Flex
+          gap={4}
+          data-tour="generate-button"
+          mt="16px"
+          className="flex-col md:flex-row md:items-center md:justify-between justify-end"
+        >
+          {/* Cost Pill - Left aligned */}
+          {lines.length > 0 && (
+            <div className="inline-flex items-center gap-4 px-4 py-2 rounded-full bg-[#1b2232] border border-[#ffffff14] text-[13px] text-[#eef2f7]">
+              <span className="flex items-center gap-2">
+                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-[#1f2937]">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <circle cx="12" cy="12" r="9" stroke="#fbbf24" strokeWidth="1.6" />
+                    <path
+                      d="M12 7V17"
+                      stroke="#fbbf24"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M9.5 10C9.5 8.89543 10.3954 8 11.5 8H13C14.1046 8 15 8.89543 15 10C15 11.1046 14.1046 12 13 12H11"
+                      stroke="#fbbf24"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </span>
+                <span>
+                  Cost: {totalCredits} {totalCredits === 1 ? "Credit" : "Credits"}
+                </span>
+              </span>
+
+              <span className="flex items-center gap-2 text-[#cbd5f5]">
+                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-[#1f2937]">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <rect x="4" y="10" width="3" height="8" rx="1" fill="#4ade80" />
+                    <rect x="10.5" y="6" width="3" height="12" rx="1" fill="#60a5fa" />
+                    <rect x="17" y="3" width="3" height="15" rx="1" fill="#f97316" />
+                  </svg>
+                </span>
+                <span>
+                  {lines.length} {lines.length === 1 ? "article" : "articles"} @{" "}
+                  {perArticleCredit} each
+                </span>
+              </span>
+            </div>
+          )}
+
+          <Flex gap={4} ml="auto">
+            <Button
+              variant="outline"
+              borderColor="gray.600"
+              className="text-[13px]"
+              _hover={{ borderColor: "gray.500" }}
+              onClick={() => setText('')}
+              disabled={isProcessing}
+              rounded="lg"
+              px={4}
+              color="#eef2f7"
+            >
+              Clear
+            </Button>
+            <Button
+              colorScheme="brand"
+              className="text-[14px]"
+              px={4}
+              rounded="lg"
+              _hover={{ bg: "blue.700", color: "white" }}
+              onClick={() =>
+                isGodMode
+                  ? sendKeywordsSequentiallyGodmode(lines)
+                  : sendKeywordsSequentially(lines)
+              }
+              disabled={isProcessing}
+            >
+              {isProcessing ? 'Generating...' : '✨ Generate Article(s)'}
+            </Button>
+          </Flex>
         </Flex>
 
 

@@ -299,6 +299,7 @@ export async function GET() {
             model: true,
             featuredImageRequired: true,
             additionalImageRequired: true,
+            links: true,
             wordLimit: true,
             comment: true,
             toneChoice: true,
@@ -331,7 +332,7 @@ export async function GET() {
         params.append('featured_image_required', fullArticle?.featuredImageRequired || 'No');
         params.append('additional_image_required', fullArticle?.additionalImageRequired || 'No');
         params.append('expand_article', 'No');
-        params.append('links', '.');
+        params.append('links', fullArticle?.links || 'No');
         params.append('tone_choice', fullArticle?.toneChoice || 'Neutral');
         params.append('perspective', fullArticle?.perspective || 'Individual (I)');
         params.append('description', fullArticle?.description || '');
@@ -444,6 +445,7 @@ export async function GET() {
               model: true,
               featuredImageRequired: true,
               additionalImageRequired: true,
+              links: true,
               wordLimit: true,
               comment: true,
               toneChoice: true,
@@ -476,7 +478,7 @@ export async function GET() {
           params.append('featured_image_required', fullArticle?.featuredImageRequired || 'No');
           params.append('additional_image_required', fullArticle?.additionalImageRequired || 'No');
           params.append('expand_article', 'No');
-          params.append('links', '.');
+          params.append('links', fullArticle?.links || 'No');
           params.append('tone_choice', fullArticle?.toneChoice || 'Neutral');
           params.append('perspective', fullArticle?.perspective || 'Individual (I)');
           params.append('description', fullArticle?.description || '');
