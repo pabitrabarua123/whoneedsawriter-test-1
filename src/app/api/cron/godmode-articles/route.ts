@@ -67,6 +67,10 @@ export async function GET() {
             additionalImageRequired: true,
             wordLimit: true,
             comment: true,
+            toneChoice: true,
+            perspective: true,
+            description: true,
+            references: true,
           }
         });
 
@@ -99,6 +103,10 @@ export async function GET() {
         params.append('additional_image_required', fullArticle.additionalImageRequired || 'No');
         params.append('expand_article', 'No');
         params.append('links', '.');
+        params.append('tone_choice', fullArticle.toneChoice || 'Neutral');
+        params.append('perspective', fullArticle.perspective || 'Individual (I)');
+        params.append('description', fullArticle.description || '');
+        params.append('references', fullArticle.references || 'No');
         params.append('secret_key', 'kdfmnids9fds0fi4nrjr(*^nII');
       //  params.append('secret_key', 'kdfmnids9fds0fi4nrjr');
         

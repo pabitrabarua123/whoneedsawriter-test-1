@@ -29,6 +29,7 @@ import {
   TbPlus
 } from "react-icons/tb";
 import { GiCheckMark } from "react-icons/gi";
+import { HiOutlineCog6Tooth } from "react-icons/hi2";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { User } from "@prisma/client";
@@ -136,7 +137,12 @@ const ArticleGenerator: React.FC = () => {
       wordLimit?: string, // Optional as it might not be used by lite mode
       featuredImage?: string, // Optional
       imageInArticle?: string, // Optional
+      enableExternalLinks?: string, // Optional
       specialRequests?: string, // Optional
+      toneChoice?: string, // Optional
+      perspective?: string, // Optional
+      description?: string, // Optional
+      references?: string, // Optional
     }) => {
       const response = await fetch("/api/article-generator", {
         method: "POST",
@@ -299,7 +305,12 @@ const ArticleGenerator: React.FC = () => {
         wordLimit: wordLimit,
         featuredImage: featuredImage,
         imageInArticle: imageInArticle,
+        enableExternalLinks: enableExternalLinks,
         specialRequests: specialRequests,
+        toneChoice: toneChoice,
+        perspective: perspective,
+        description: description,
+        references: references,
       });
       
       // Store all article IDs
@@ -428,6 +439,14 @@ const start25MinLoader = () => {
     setIsDropdownOpen(false);
   };
 
+  useEffect(() => {
+    if (selectedModel === '1a-lite') {
+      setFeaturedImage('no');
+    }else{
+      setFeaturedImage('yes');
+    }
+  }, [selectedModel]);
+
   const selectedOption = modelOptions.find(option => option.value === selectedModel) || modelOptions[1];
 
   // Close dropdown when clicking outside
@@ -479,7 +498,55 @@ const start25MinLoader = () => {
   const [featuredImage, setFeaturedImage] = useState("yes");
   const [imageInArticle, setImageInArticle] = useState("no");
   const [specialRequests, setSpecialRequests] = useState("");
-  const [enableExternalLinks, setEnableExternalLinks] = useState(false);
+  const [enableExternalLinks, setEnableExternalLinks] = useState("No");
+  
+  // Additional Options state
+  const [showAdditionalOptions, setShowAdditionalOptions] = useState(false);
+  const [showPublisherDetailsPopup, setShowPublisherDetailsPopup] = useState(false);
+  const [references, setReferences] = useState("No");
+  const [toneChoice, setToneChoice] = useState("Neutral");
+  const [perspective, setPerspective] = useState("Individual (I)");
+  const [description, setDescription] = useState("");
+  const [isToneDropdownOpen, setIsToneDropdownOpen] = useState(false);
+  const [isPerspectiveDropdownOpen, setIsPerspectiveDropdownOpen] = useState(false);
+  
+  // Refs for dropdowns
+  const toneDropdownRef = useRef<HTMLDivElement>(null);
+  const perspectiveDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close tone dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (toneDropdownRef.current && !toneDropdownRef.current.contains(event.target as Node)) {
+        setIsToneDropdownOpen(false);
+      }
+    };
+
+    if (isToneDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isToneDropdownOpen]);
+
+  // Close perspective dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (perspectiveDropdownRef.current && !perspectiveDropdownRef.current.contains(event.target as Node)) {
+        setIsPerspectiveDropdownOpen(false);
+      }
+    };
+
+    if (isPerspectiveDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isPerspectiveDropdownOpen]);
 
   return (
     <Flex justifyContent="flex-start" w="100%" minH="100vh">
@@ -616,50 +683,124 @@ const start25MinLoader = () => {
         </Flex>
 
         {/* Options - Stylish Checkboxes */}
-        { selectedModel === '1a-pro' && (
-        <div className="flex flex-wrap gap-4 mt-6 mb-8">
-          <button
-            type="button"
-            onClick={() => setFeaturedImage(prev => (prev === 'yes' ? 'no' : 'yes'))}
-            className={`w-fit flex items-center gap-3 px-5 py-3 rounded-full border bg-[#1b2232] border-[#ffffff14] hover-gradient`}
-            style={{ transition: 'background .2s ease, box-shadow .2s ease, border-color .2s ease' }}
+        { (selectedModel === '1a-pro' || selectedModel === '1a-core' || selectedModel === '1a-lite') && (
+        <div className={`flex flex-wrap gap-4 mt-6 mb-8 ${selectedModel === '1a-lite' ? 'opacity-50' : ''}`}>
+          <Tooltip 
+            label={selectedModel === '1a-lite' ? 'Not supported in current model' : ''}
+            isDisabled={selectedModel !== '1a-lite'}
+            hasArrow
           >
-            <span className={`w-4 h-4 rounded-[4px] flex items-center justify-center ${
-              featuredImage === 'yes' ? 'bg-[#6c8cff]' : 'bg-[#0e1322]'
-            }`}>
-              {featuredImage === 'yes' && <GiCheckMark className="text-white w-2.5 h-2.5" />}
+            <span className="inline-block">
+              <button
+                type="button"
+                onClick={() => selectedModel !== '1a-lite' && setFeaturedImage(prev => (prev === 'yes' ? 'no' : 'yes'))}
+                disabled={selectedModel === '1a-lite'}
+                className={`w-fit flex items-center gap-3 px-5 py-3 rounded-full border bg-[#1b2232] border-[#ffffff14] hover-gradient ${selectedModel === '1a-lite' ? 'cursor-not-allowed' : ''}`}
+                style={{ transition: 'background .2s ease, box-shadow .2s ease, border-color .2s ease' }}
+              >
+                <span className={`w-4 h-4 rounded-[4px] flex items-center justify-center ${
+                  featuredImage === 'yes' ? 'bg-[#6c8cff]' : 'bg-[#0e1322]'
+                }`}>
+                  {featuredImage === 'yes' && <GiCheckMark className="text-white w-2.5 h-2.5" />}
+                </span>
+                <span className="text-[#eef2f7] font-bold text-xs">Featured image</span>
+              </button>
             </span>
-            <span className="text-[#eef2f7] font-bold text-xs">Featured image</span>
-          </button>
+          </Tooltip>
 
-          <button
-            type="button"
-            onClick={() => setImageInArticle(prev => (prev === 'yes' ? 'no' : 'yes'))}
-            className={`w-fit flex items-center gap-3 px-5 py-3 rounded-full border bg-[#1b2232] border-[#ffffff14] hover-gradient`}
-            style={{ transition: 'background .2s ease, box-shadow .2s ease, border-color .2s ease' }}
+          <Tooltip 
+            label={selectedModel === '1a-lite' ? 'Not supported in current model' : ''}
+            isDisabled={selectedModel !== '1a-lite'}
+            hasArrow
           >
-            <span className={`w-4 h-4 rounded-[4px] flex items-center justify-center ${
-              imageInArticle === 'yes' ? 'bg-[#6c8cff]' : 'bg-[#0e1322]'
-            }`}>
-              {imageInArticle === 'yes' && <GiCheckMark className="text-white w-2.5 h-2.5" />}
+            <span className="inline-block">
+              <button
+                type="button"
+                onClick={() => selectedModel !== '1a-lite' && setImageInArticle(prev => (prev === 'yes' ? 'no' : 'yes'))}
+                disabled={selectedModel === '1a-lite'}
+                className={`w-fit flex items-center gap-3 px-5 py-3 rounded-full border bg-[#1b2232] border-[#ffffff14] hover-gradient ${selectedModel === '1a-lite' ? 'cursor-not-allowed' : ''}`}
+                style={{ transition: 'background .2s ease, box-shadow .2s ease, border-color .2s ease' }}
+              >
+                <span className={`w-4 h-4 rounded-[4px] flex items-center justify-center ${
+                  imageInArticle === 'yes' ? 'bg-[#6c8cff]' : 'bg-[#0e1322]'
+                }`}>
+                  {imageInArticle === 'yes' && <GiCheckMark className="text-white w-2.5 h-2.5" />}
+                </span>
+                <span className="text-[#eef2f7] font-bold text-xs">Infographics</span>
+              </button>
             </span>
-            <span className="text-[#eef2f7] font-bold text-xs">Infographics</span>
-          </button>
+          </Tooltip>
 
-          <button
-            type="button"
-            onClick={() => setEnableExternalLinks(prev => !prev)}
-            className={`w-fit flex items-center gap-3 px-5 py-3 bg-[#1b2232] border-[#ffffff14] rounded-full border hover-gradient`}
-            style={{ transition: 'background .2s ease, box-shadow .2s ease, border-color .2s ease' }}
+          <Tooltip 
+            label={selectedModel === '1a-lite' ? 'Not supported in current model' : ''}
+            isDisabled={selectedModel !== '1a-lite'}
+            hasArrow
           >
-            <span className={`w-4 h-4 rounded-[4px] flex items-center justify-center ${
-              enableExternalLinks ? 'bg-[#6c8cff]' : 'bg-[#0e1322]'
-            }`}>
-              {enableExternalLinks && <GiCheckMark className="text-white w-2.5 h-2.5" />}
+            <span className="inline-block">
+              <button
+                type="button"
+                onClick={() => selectedModel !== '1a-lite' && setEnableExternalLinks(prev => (prev === 'Yes' ? 'No' : 'Yes'))}
+                disabled={selectedModel === '1a-lite'}
+                className={`w-fit flex items-center gap-3 px-5 py-3 bg-[#1b2232] border-[#ffffff14] rounded-full border hover-gradient ${selectedModel === '1a-lite' ? 'cursor-not-allowed' : ''}`}
+                style={{ transition: 'background .2s ease, box-shadow .2s ease, border-color .2s ease' }}
+              >
+                <span className={`w-4 h-4 rounded-[4px] flex items-center justify-center ${
+                  enableExternalLinks === 'Yes' ? 'bg-[#6c8cff]' : 'bg-[#0e1322]'
+                }`}>
+                  {enableExternalLinks === 'Yes' && <GiCheckMark className="text-white w-2.5 h-2.5" />}
+                </span>
+                <span className="text-[#eef2f7] font-bold text-xs">External links</span>
+              </button>
             </span>
-            <span className="text-[#eef2f7] font-bold text-xs">External links</span>
-          </button>
+          </Tooltip>
+
+          {/* Additional Options Button - Only for 1a-pro and 1a-core */}
+          {(selectedModel === '1a-pro' || selectedModel === '1a-core') && (
+            <button
+              type="button"
+              onClick={() => setShowAdditionalOptions(prev => !prev)}
+              className="w-fit flex items-center gap-3 px-5 py-3 bg-[#1b2232] border-[#ffffff14] rounded-full border hover-gradient"
+              style={{ transition: 'background .2s ease, box-shadow .2s ease, border-color .2s ease' }}
+            >
+              <HiOutlineCog6Tooth className="text-[#eef2f7] w-4 h-4" />
+              <span className="text-[#eef2f7] font-bold text-xs">Additional Options</span>
+            </button>
+          )}
         </div>
+        )}
+
+        {/* Additional Options Section */}
+        {showAdditionalOptions && (selectedModel === '1a-pro' || selectedModel === '1a-core') && (
+          <div className="flex flex-wrap gap-4 mt-4 mb-8 p-4 rounded-lg border border-[#ffffff14] bg-[#1b2232]">
+            {/* References Checkbox */}
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setReferences(prev => (prev === 'Yes' ? 'No' : 'Yes'))}
+                className="w-fit flex items-center gap-3 px-5 py-3 rounded-full border bg-[#1b2232] border-[#ffffff14] hover-gradient"
+                style={{ transition: 'background .2s ease, box-shadow .2s ease, border-color .2s ease' }}
+              >
+                <span className={`w-4 h-4 rounded-[4px] flex items-center justify-center ${
+                  references === 'Yes' ? 'bg-[#6c8cff]' : 'bg-[#0e1322]'
+                }`}>
+                  {references === 'Yes' && <GiCheckMark className="text-white w-2.5 h-2.5" />}
+                </span>
+                <span className="text-[#eef2f7] font-bold text-xs">References ({references === 'Yes' ? 'Yes' : 'No'})</span>
+              </button>
+            </div>
+
+            {/* Publisher Details */}
+            <Tooltip label="Helps enhance article" hasArrow>
+              <button
+                type="button"
+                onClick={() => setShowPublisherDetailsPopup(true)}
+                className="w-fit flex items-center gap-3 px-5 py-3 bg-[#1b2232] border-[#ffffff14] rounded-full border hover-gradient"
+                style={{ transition: 'background .2s ease, box-shadow .2s ease, border-color .2s ease' }}
+              >
+                <span className="text-[#eef2f7] font-bold text-xs">Publisher Details</span>
+              </button>
+            </Tooltip>
+          </div>
         )}
 
         {/* Lite Mode Change Prompt */}
@@ -718,7 +859,7 @@ seo content writing tips`}
         </VStack>
 
         {/* Special Instructions (optional) */}
-        { selectedModel === '1a-pro' && (
+        { selectedModel !== '1a-lite' && (
         <VStack align="flex-start" spacing={2} width="100%" data-tour="keyword-input" mt="16px">
           <Heading className={`font-normal text-[13px] text-[#7f8aa3]`}>Special Instructions (optional)</Heading>
           <textarea
@@ -956,6 +1097,165 @@ seo content writing tips`}
           setPrompt={setPrompt}
         />
       )}
+
+      {/* Publisher Details Modal */}
+      <Modal isOpen={showPublisherDetailsPopup} onClose={() => setShowPublisherDetailsPopup(false)}>
+        <ModalOverlay />
+        <ModalContent bg="#1b2232" border="1px solid #ffffff14">
+          <ModalHeader color="#eef2f7">Publisher Details</ModalHeader>
+          <ModalCloseButton color="#eef2f7" />
+          <ModalBody>
+            <VStack spacing={4} align="stretch">
+              {/* Tone Choice Dropdown */}
+              <FormControl>
+                <FormLabel color="#a9b1c3" fontSize="sm" mb={3}>Tone Choice</FormLabel>
+                <div className="relative" ref={toneDropdownRef}>
+                  <button
+                    className="w-full bg-[#0e1322] border border-[#ffffff14] text-white rounded-lg py-3 px-4 text-left flex items-center justify-between"
+                    onClick={() => setIsToneDropdownOpen(!isToneDropdownOpen)}
+                  >
+                    <span className="font-medium text-white">{toneChoice}</span>
+                    <svg 
+                      className={`w-4 h-4 text-slate-300 transition-transform duration-200 ${isToneDropdownOpen ? 'rotate-180' : ''}`} 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  
+                  {isToneDropdownOpen && (
+                    <div className="absolute top-full left-0 right-0 mt-1 border border-[#ffffff14] bg-[#151923] rounded-lg z-50 overflow-hidden"
+                    style={{ boxShadow: '0 10px 30px rgba(0,0,0,.35)' }}>
+                      {["Neutral", "Professional", "Conversational", "Humorous", "Creative", "Authoritative", "Simple English", "Custom"].map((option, index) => (
+                        <div
+                          key={option}
+                          className={`p-4 cursor-pointer transition-all duration-200 hover:bg-[#ffffff0d] ${
+                            index === 0 ? 'rounded-t-lg' : ''
+                          } ${
+                            index === 7 ? 'rounded-b-lg' : ''
+                          }`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#1a1f3a';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                          onClick={() => {
+                            setToneChoice(option);
+                            setIsToneDropdownOpen(false);
+                          }}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-white">{option}</span>
+                            {toneChoice === option && (
+                              <GiCheckMark className="w-3 h-3 text-[#4da3ff] ml-auto" />
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </FormControl>
+
+              {/* Perspective Dropdown */}
+              <FormControl>
+                <FormLabel color="#a9b1c3" fontSize="sm" mb={3}>Perspective</FormLabel>
+                <div className="relative" ref={perspectiveDropdownRef}>
+                  <button
+                    className="w-full bg-[#0e1322] border border-[#ffffff14] text-white rounded-lg py-3 px-4 text-left flex items-center justify-between"
+                    onClick={() => setIsPerspectiveDropdownOpen(!isPerspectiveDropdownOpen)}
+                  >
+                    <span className="font-medium text-white">{perspective}</span>
+                    <svg 
+                      className={`w-4 h-4 text-slate-300 transition-transform duration-200 ${isPerspectiveDropdownOpen ? 'rotate-180' : ''}`} 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  
+                  {isPerspectiveDropdownOpen && (
+                    <div className="absolute top-full left-0 right-0 mt-1 border border-[#ffffff14] bg-[#151923] rounded-lg z-50 overflow-hidden"
+                    style={{ boxShadow: '0 10px 30px rgba(0,0,0,.35)' }}>
+                      {["Individual (I)", "Organization (We)", "Third person"].map((option, index) => (
+                        <div
+                          key={option}
+                          className={`p-4 cursor-pointer transition-all duration-200 hover:bg-[#ffffff0d] ${
+                            index === 0 ? 'rounded-t-lg' : ''
+                          } ${
+                            index === 2 ? 'rounded-b-lg' : ''
+                          }`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#1a1f3a';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                          onClick={() => {
+                            setPerspective(option);
+                            setIsPerspectiveDropdownOpen(false);
+                          }}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-white">{option}</span>
+                            {perspective === option && (
+                              <GiCheckMark className="w-3 h-3 text-[#4da3ff] ml-auto" />
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </FormControl>
+
+              {/* Description Text Box */}
+              <FormControl>
+                <FormLabel color="#a9b1c3" fontSize="sm">Description</FormLabel>
+                <Textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  bg="#0e1322"
+                  borderColor="#ffffff14"
+                  color="#eef2f7"
+                  placeholder="Enter description..."
+                  _hover={{ borderColor: "#6c8cff" }}
+                  _focus={{ borderColor: "#6c8cff", boxShadow: "0 0 0 1px #6c8cff" }}
+                  rows={4}
+                />
+              </FormControl>
+            </VStack>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              onClick={() => setShowPublisherDetailsPopup(false)}
+              variant="ghost"
+              color="#a9b1c3"
+              mr={3}
+              _hover={{ bg: "#0e1322" }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                // Save profile logic here
+                setShowPublisherDetailsPopup(false);
+              }}
+              colorScheme="brand"
+              px={4}
+              rounded="lg"
+              _hover={{ bg: "blue.700", color: "white" }}
+            >
+              Save Profile
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
 
       {/* Tour Guide */}
       <TourGuide

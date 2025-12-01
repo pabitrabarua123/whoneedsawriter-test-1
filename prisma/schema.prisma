@@ -194,6 +194,11 @@ model GodmodeArticles {
   featuredImageRequired   String?
   wordLimit               Int      @default(0)
   title                   String?
+  links                   String?
+  toneChoice              String?   
+  perspective             String?
+  description             String?
+  references              String?
 }
 
 model PendingGodmodeArticles {

@@ -98,7 +98,7 @@ export async function POST(request: Request) {
   const userId = session?.user.id as string;
   
   try {
-    const {batchId, text, prompt, is_godmode, model, balance_type, no_of_keyword, wordLimit, featuredImage, imageInArticle, specialRequests, selectedModel } = await request.json();
+    const {batchId, text, prompt, is_godmode, model, balance_type, no_of_keyword, wordLimit, featuredImage, imageInArticle, specialRequests, enableExternalLinks, toneChoice, perspective, description, references } = await request.json();
     if (!text || typeof text !== "string") {
       return NextResponse.json({ error: "Invalid keyword" }, { status: 400 });
     }
@@ -106,7 +106,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid model" }, { status: 400 });
     }
 
-    let aiResponse = '';
     if(is_godmode){
         // Split the text into individual keywords
         const keywords = text.split('\n').filter(keyword => keyword.trim() !== '');
@@ -123,7 +122,12 @@ export async function POST(request: Request) {
                     featuredImageRequired: featuredImage === 'yes' ? 'Yes' : 'No',
                     additionalImageRequired: imageInArticle === 'yes' ? 'Yes' : 'No',
                     wordLimit: wordLimit ? parseInt(wordLimit) : undefined,
-                    comment: specialRequests || '.'
+                    comment: specialRequests || '.',
+                    links: enableExternalLinks === 'Yes' ? 'Yes' : 'No',
+                    toneChoice: toneChoice || '',
+                    perspective: perspective || '',
+                    description: description || '',
+                    references: references === 'Yes' ? 'Yes' : 'No'
                 },
             });
 
