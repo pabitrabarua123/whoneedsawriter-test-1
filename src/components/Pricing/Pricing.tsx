@@ -1,12 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
-import { Button, Flex, Heading, SimpleGrid, Text, Tooltip, useColorModeValue, Box } from "@chakra-ui/react";
-import { BsFillQuestionCircleFill } from "react-icons/bs";
-import { PricingPlan } from "./PricingPlan";
+import { useEffect, useState } from "react";
+import { Text, Tooltip, useColorModeValue, Flex, Heading } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import { Section } from "../atoms/Section/Section";
-import { useState } from "react";
 import { useColorModeValues } from "@/hooks/useColorModeValues";
 import { useQuery } from "@tanstack/react-query";
 import { useIsLogged } from "@/hooks/useIsLogged";
@@ -231,654 +228,360 @@ fetch(geoUrl, {
         Loading plans...
       </Text>
       }
-      { !isLoadingPrice &&
-        <Flex
-        mt="5px"
-        fontSize="14px"
-        color={secondaryTextColor}
-        justifyContent="center"
-        className="mx-auto block text-center md:flex md:text-left"
-        >
-        <Text ml="5px" mr="5px">All plans include a</Text>
-        <Tooltip 
-          label="Refund applicable for unused credits, or error in article generations"
-          placement="top"
-          hasArrow
-          bg={tooltipBg}
-          color={tooltipColor}
-          fontSize="sm"
-          px={3}
-          py={2}
-          borderRadius="md"
-          sx={{
-            bg: tooltipBg + " !important",
-            color: tooltipColor + " !important",
-          }}
-        >
-          <Text textDecor={isMonthly ? "line-through" : "none"} color="brand.400" cursor="help">
-            7-day money-back guarantee.
-          </Text>
-        </Tooltip>
-        <Text ml="5px">Need help choosing? Contact our support team.</Text>
-        </Flex>
-      }
+
       {!isLoadingPrice &&
-            <Section mt="60px" alignItems="center" className="block max-w-[1000px] my-5 mx-auto">
-            {/* Tabs */}
-            {/* <div className="flex justify-center p-4">
-              <div className="flex">
-                <button 
-                  className={`px-5 py-2 font-medium border border-[rgba(255,255,255,0.2)] 
-                    ${activeTab === 'monthly' 
-                      ? 'bg-[#33d6e2] border-[#33d6e2] text-[#141824] font-semibold' 
-                      : `bg-transparent ${secondaryTextColor} ${borderColor}`} 
-                    rounded-l-lg cursor-pointer`}
-                  onClick={() => handleTabClick('monthly')}
-                >
-                  Monthly
-                </button>
-                <button 
-                  className={`px-5 py-2 font-medium border border-[rgba(255,255,255,0.2)] 
-                    ${activeTab === 'onetime' 
-                      ? 'bg-[#33d6e2] border-[#33d6e2] text-[#141824] font-semibold' 
-                      : `bg-transparent ${secondaryTextColor} ${borderColor}`} 
-                    rounded-r-lg cursor-pointer`}
-                  onClick={() => handleTabClick('onetime')}
-                >
-                  Pay-per-Credit
-                </button>
-              </div>
-            </div> */}
-    
+            <div className="w-full max-w-5xl mx-auto px-4">
             {/* Content Area with Plans */}
             <div className="overflow-y-auto">
               {activeTab === 'monthly' ? (
-                <div className="flex flex-col md:flex-row p-4 md:p-6 gap-4">
+                <div className="bg-gradient-to-b from-[#151923] to-[#131827] rounded-3xl border border-[#111827] shadow-2xl overflow-hidden">
+      <p className="text-sm text-[#8990a5] text-center mb-8 mt-8">
+        Same powerful features on every plan. Just choose how many credits you need.
+      </p>
+                  {/* Body */}
+                  <div className="px-8 pb-8 pt-6 text-white">
+                    
+
+                    {/* Pricing Cards */}
+                    <div className="grid gap-6 md:grid-cols-3 mt-2">
     { filteredPlansSubscription &&
-      filteredPlansSubscription.map((plan: {id: number; name: string; productId: string; priceId: string; price: number; features: string, currency: string}) => (
-      <div key={plan.id} className={`${bgColor} rounded-lg flex-1 p-6 border ${borderColor} relative min-h-[380px] hover:transform hover:translate-y-[-4px] hover:shadow-lg transition-all duration-300 hover:border-[#33d6e2]`}>
-        { plan.name === 'Premium' &&
-          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-[#33d6e2] text-[#141824] text-xs font-semibold py-1 px-2.5 rounded-xl uppercase">
-            Most Popular
-          </div>
-        }
-        <div className="mb-4">
-          <h3 className="font-semibold text-xl mb-2">{plan.name}</h3>
-        </div>
-        <div className="text-3xl font-bold my-2">
-          <span className="text-base align-top relative top-0.5">{plan.currency === 'INR' ? '₹' : '$'}</span>{plan.price}
-          <span className="text-sm font-normal text-[#8990a5]">/month</span>
-        </div>
-        <ul className="list-none p-0 my-6 mb-[70px]">
-      {plan.features
-        ? JSON.parse(plan.features).slice(0, 2).map((feature: string, index: number) => {
-            const match = feature.match(/^(\d+|Unlimited)\s(.+)$/); // Extracts number and text part
-            return (
-              <li key={index} className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-                <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-                {match ? (
-                  <span>
-                    <span className="text-[#33d6e2] font-medium">{match[1]}</span> {match[2]}
-                  </span>
-                ) : (
-                  <span>{feature}</span> // If no number detected, show feature as is
-                )}
-              </li>
-            );
-          })
-        : null}
-        <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-          <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-          <Flex align="center" gap={2}>
-            <span>SERP Analysis</span>
-            <Tooltip 
-              label="Analyzes top-ranking pages to identify what content performs best for your target keyword."
-              placement="top"
-              hasArrow
-              bg={tooltipBg}
-              color={tooltipColor}
-              fontSize="sm"
-              px={3}
-              py={2}
-              borderRadius="md"
-              sx={{
-                bg: tooltipBg + " !important",
-                color: tooltipColor + " !important",
-              }}
-            >
-              <Box display="inline-flex" alignItems="center">
-                <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-              </Box>
-            </Tooltip>
-          </Flex>
-        </li>
-        <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-          <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-          <Flex align="center" gap={2}>
-            <span>Keyword Intent Analysis</span>
-            <Tooltip 
-              label="Analyzes the search intent behind your target keyword to create content that matches user expectations."
-              placement="top"
-              hasArrow
-              bg={tooltipBg}
-              color={tooltipColor}
-              fontSize="sm"
-              px={3}
-              py={2}
-              borderRadius="md"
-              sx={{
-                bg: tooltipBg + " !important",
-                color: tooltipColor + " !important",
-              }}
-            >
-              <Box display="inline-flex" alignItems="center">
-                <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-              </Box>
-            </Tooltip>
-          </Flex>
-        </li>
-        <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-          <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-          <Flex align="center" gap={2}>
-            <span>Deep Research</span>
-            <Tooltip 
-              label="We break down your query, analyze hundreds of reliable sources, and produce fact-checked, accurate articles with zero hallucination."
-              placement="top"
-              hasArrow
-              bg={tooltipBg}
-              color={tooltipColor}
-              fontSize="sm"
-              px={3}
-              py={2}
-              borderRadius="md"
-              sx={{
-                bg: tooltipBg + " !important",
-                color: tooltipColor + " !important",
-              }}
-            >
-              <Box display="inline-flex" alignItems="center">
-                <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-              </Box>
-            </Tooltip>
-          </Flex>
-        </li>
-        <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-          <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-          <Flex align="center" gap={2}>
-            <span>Images & Infographics</span>
-            <Tooltip 
-              label="Automatically generates and includes relevant images and infographics to enhance your content."
-              placement="top"
-              hasArrow
-              bg={tooltipBg}
-              color={tooltipColor}
-              fontSize="sm"
-              px={3}
-              py={2}
-              borderRadius="md"
-              sx={{
-                bg: tooltipBg + " !important",
-                color: tooltipColor + " !important",
-              }}
-            >
-              <Box display="inline-flex" alignItems="center">
-                <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-              </Box>
-            </Tooltip>
-          </Flex>
-        </li>
-        <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-          <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-          <Flex align="center" gap={2}>
-            <span>AI SEO Optimization</span>
-            <Tooltip 
-              label="Optimizes content structure, headings, and keywords for better search engine rankings."
-              placement="top"
-              hasArrow
-              bg={tooltipBg}
-              color={tooltipColor}
-              fontSize="sm"
-              px={3}
-              py={2}
-              borderRadius="md"
-              sx={{
-                bg: tooltipBg + " !important",
-                color: tooltipColor + " !important",
-              }}
-            >
-              <Box display="inline-flex" alignItems="center">
-                <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-              </Box>
-            </Tooltip>
-          </Flex>
-        </li>
-        <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-          <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-          <Flex align="center" gap={2}>
-            <span>Bulk Writing Mode</span>
-            <Tooltip 
-              label="Generate multiple articles at once with batch processing capabilities for maximum efficiency."
-              placement="top"
-              hasArrow
-              bg={tooltipBg}
-              color={tooltipColor}
-              fontSize="sm"
-              px={3}
-              py={2}
-              borderRadius="md"
-              sx={{
-                bg: tooltipBg + " !important",
-                color: tooltipColor + " !important",
-              }}
-            >
-              <Box display="inline-flex" alignItems="center">
-                <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-              </Box>
-            </Tooltip>
-          </Flex>
-        </li>
-        <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-          <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-          <Flex align="center" gap={2}>
-            <span>WordPress Integration</span>
-            <Tooltip 
-              label="Seamlessly publish articles directly to your WordPress site with one-click integration."
-              placement="top"
-              hasArrow
-              bg={tooltipBg}
-              color={tooltipColor}
-              fontSize="sm"
-              px={3}
-              py={2}
-              borderRadius="md"
-              sx={{
-                bg: tooltipBg + " !important",
-                color: tooltipColor + " !important",
-              }}
-            >
-              <Box display="inline-flex" alignItems="center">
-                <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-              </Box>
-            </Tooltip>
-          </Flex>
-        </li>
-        <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-          <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-          <Flex align="center" gap={2}>
-            <span>Semantic SEO</span>
-            <Tooltip 
-              label="Enriches content with related terms and entities to improve topical authority."
-              placement="top"
-              hasArrow
-              bg={tooltipBg}
-              color={tooltipColor}
-              fontSize="sm"
-              px={3}
-              py={2}
-              borderRadius="md"
-              sx={{
-                bg: tooltipBg + " !important",
-                color: tooltipColor + " !important",
-              }}
-            >
-              <Box display="inline-flex" alignItems="center">
-                <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-              </Box>
-            </Tooltip>
-          </Flex>
-        </li>
-        <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-          <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-          <Flex align="center" gap={2}>
-            <span>High EEAT Score</span>
-            <Tooltip 
-              label="Includes citations, outbound links, semantic structure, and first-person insights for authoritative, trustworthy content."
-              placement="top"
-              hasArrow
-              bg={tooltipBg}
-              color={tooltipColor}
-              fontSize="sm"
-              px={3}
-              py={2}
-              borderRadius="md"
-              sx={{
-                bg: tooltipBg + " !important",
-                color: tooltipColor + " !important",
-              }}
-            >
-              <Box display="inline-flex" alignItems="center">
-                <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-              </Box>
-            </Tooltip>
-          </Flex>
-        </li>
-        <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-          <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-          <span>
-            {plan.name === 'Pro' ? 'Email Support' : 'Priority Support'}
-          </span>
-        </li>
-    </ul>
-        <Button  
-          size="md"
-          variant="solid"
-          colorScheme="brand"
-          h="50px"
-          minH="50px"
-          w="220px"
-          px="24px"
-          onClick={() => payStripeSubscription(plan.priceId, plan.name)} 
-          className={`absolute bottom-6 left-6 right-6 ${
-            (processingPlan === plan.priceId || (planData?.SubscriptionPlan && planData.SubscriptionPlan.planId === plan.id)) 
-              ? 'cursor-not-allowed opacity-50' 
-              : 'cursor-pointer'
-          }`}
-          disabled={processingPlan === plan.priceId || planData?.SubscriptionPlan && planData.SubscriptionPlan.planId === plan.id}
+      filteredPlansSubscription.map((plan: {id: number; name: string; productId: string; priceId: string; price: number; features: string, currency: string}) => {
+        // Extract credits from features
+        const featuresArray = plan.features ? JSON.parse(plan.features) : [];
+        const creditsMatch = featuresArray[0]?.match(/^(\d+|Unlimited)\s/);
+        const credits = creditsMatch ? creditsMatch[1] : '0';
+        const approximateArticles = credits === 'Unlimited' ? 'Unlimited' : `~${credits}`;
+        
+        // Get plan description
+        const getPlanDescription = (name: string) => {
+          if (name === 'Pro') return 'For individuals & light users';
+          if (name === 'Premium') return 'For creators & marketers';
+          if (name === 'Ultimate') return 'For agencies & power users';
+          return '';
+        };
+
+        return (
+        <div 
+          key={plan.id} 
+          className={`rounded-2xl border ${
+            plan.name === 'Premium' 
+              ? 'border-[#33d6e2] shadow-[0_0_30px_rgba(51,214,226,0.25)]' 
+              : 'border-[#1f2937]'
+          } bg-[#0b1120] px-6 py-6 relative`}
         >
-          { planData?.SubscriptionPlan && planData.SubscriptionPlan.planId === plan.id ?
-          'Current Plan' 
-          :
-          <>
-          { processingPlan === plan.priceId ? 'Processing Payment...' : 'Upgrade Now'}
-          </>
-        }
-        </Button>
-      </div>
-      ))
-    }            
+          { plan.name === 'Premium' &&
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+              <span className="inline-flex items-center px-4 py-1 rounded-full bg-[#33d6e2] text-xs font-semibold text-slate-900 uppercase tracking-wide">
+                Most Popular
+              </span>
+            </div>
+          }
+          
+          <h3 className={`text-lg font-semibold ${plan.name === 'Premium' ? 'mt-2' : ''}`}>{plan.name}</h3>
+
+          {/* PRICE + CREDITS CARD */}
+          <div className="mt-4 rounded-xl bg-[#020617] border border-[#111827] px-4 py-3 flex items-center justify-between text-xs">
+            <div>
+              <p className="text-[10px] uppercase tracking-wide text-[#8990a5]">Price</p>
+              <p className="text-sm font-semibold text-white">
+                {plan.currency === 'INR' ? '₹' : '$'}{plan.price} 
+                <span className="text-[11px] text-[#8990a5]">/month</span>
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] uppercase tracking-wide text-[#8990a5]">Credits</p>
+              <p className="text-sm font-semibold text-white">{credits}</p>
+            </div>
+          </div>
+
+          <p className="mt-2 text-[11px] uppercase tracking-wide text-[#33d6e2]">
+            {getPlanDescription(plan.name)}
+          </p>
+
+          {/* APPROX ARTICLES */}
+          <div className="mt-4 rounded-xl bg-[#020617] border border-[#111827] px-4 py-3 text-xs text-[#8990a5] relative">
+            <div className="flex items-center justify-between">
+              <p className="text-white font-semibold text-[13px]">
+                {approximateArticles === 'Unlimited' ? 'Unlimited Researched Articles' : `${approximateArticles} Researched Articles`}
+              </p>
+
+              {/* INFO ICON */}
+              <div className="relative group cursor-pointer">
+                <span className="text-[#33d6e2] text-sm font-bold">i</span>
+
+                <div className="absolute right-0 mt-2 w-64 rounded-lg bg-[#0b1120] border border-[#111827] px-3 py-3 text-xs text-[#8990a5] opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                  <p className="mb-1 text-[#33d6e2] font-semibold">How credits work:</p>
+                  <p>• Short form articles ≈ 0.1 credit each</p>
+                  <p>• Researched articles ≈ 1 credit each</p>
+                  <p>• Deep researched articles ≈ 2 credits each</p>
+                  <p className="mt-2 text-[#ffffff] font-medium">
+                    You can mix any type with your credits.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button 
+            onClick={() => payStripeSubscription(plan.priceId, plan.name)} 
+            disabled={processingPlan === plan.priceId || (planData?.SubscriptionPlan && planData.SubscriptionPlan.planId === plan.id)}
+            className={`mt-6 w-full py-3 rounded-xl bg-[#33d6e2] text-[#0b1120] font-semibold text-sm hover:bg-[#4cf0ff] transition ${
+              (processingPlan === plan.priceId || (planData?.SubscriptionPlan && planData.SubscriptionPlan.planId === plan.id))
+                ? 'cursor-not-allowed opacity-50' 
+                : 'cursor-pointer'
+            }`}
+          >
+            { planData?.SubscriptionPlan && planData.SubscriptionPlan.planId === plan.id
+              ? 'Current Plan' 
+              : processingPlan === plan.priceId 
+                ? 'Processing Payment...' 
+                : 'Upgrade Now'
+            }
+          </button>
+        </div>
+      )})}
+                    </div>
+
+                    {/* SHARED FEATURES */}
+                    <div className="mt-10 border-t border-[#111827] pt-8">
+                      <h3 className="text-center text-xs font-semibold text-[#8990a5] uppercase tracking-[0.25em] mb-6">
+                        All Plans Include
+                      </h3>
+
+                      <div className="max-w-3xl mx-auto">
+                        <div className="grid gap-y-3 gap-x-10 sm:grid-cols-2 lg:grid-cols-3 text-sm text-[#8990a5]">
+                          <div>
+                            <div className="flex items-start mb-2">
+                              <span className="text-[#33d6e2] mr-2 mt-[2px]">✓</span>
+                              <span>SERP Analysis</span>
+                            </div>
+                            <div className="flex items-start mb-2">
+                              <span className="text-[#33d6e2] mr-2 mt-[2px]">✓</span>
+                              <span>Images & Infographics</span>
+                            </div>
+                            <div className="flex items-start mb-2">
+                              <span className="text-[#33d6e2] mr-2 mt-[2px]">✓</span>
+                              <span>WordPress Integration</span>
+                            </div>
+                            <div className="flex items-start">
+                              <span className="text-[#33d6e2] mr-2 mt-[2px]">✓</span>
+                              <span>Email Support</span>
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="flex items-start mb-2">
+                              <span className="text-[#33d6e2] mr-2 mt-[2px]">✓</span>
+                              <span>Keyword Intent Analysis</span>
+                            </div>
+                            <div className="flex items-start mb-2">
+                              <span className="text-[#33d6e2] mr-2 mt-[2px]">✓</span>
+                              <span>AI SEO Optimization</span>
+                            </div>
+                            <div className="flex items-start mb-2">
+                              <span className="text-[#33d6e2] mr-2 mt-[2px]">✓</span>
+                              <span>Semantic SEO</span>
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="flex items-start mb-2">
+                              <span className="text-[#33d6e2] mr-2 mt-[2px]">✓</span>
+                              <span>Deep Research</span>
+                            </div>
+                            <div className="flex items-start mb-2">
+                              <span className="text-[#33d6e2] mr-2 mt-[2px]">✓</span>
+                              <span>Bulk Writing Mode</span>
+                            </div>
+                            <div className="flex items-start">
+                              <span className="text-[#33d6e2] mr-2 mt-[2px]">✓</span>
+                              <span>High EEAT Score</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <p className="mt-6 text-center text-xs text-[#8990a5]">
+                      All plans include a 7-day money-back guarantee.
+                    </p>
+                  </div>
                 </div>
               ) : (
-                <div className="flex flex-col md:flex-row p-4 md:p-6 gap-4">
+                <div className="bg-gradient-to-b from-[#050816] to-[#020617] rounded-3xl border border-[#111827] shadow-2xl overflow-hidden">
+                  {/* Header */}
+                  <div className="flex items-center justify-between px-8 pt-6 pb-4 border-b border-[#111827]">
+                    <h2 className="text-2xl font-semibold text-white">Upgrade Plan</h2>
+                  </div>
+
+                  {/* Body */}
+                  <div className="px-8 pb-8 pt-6 text-white">
+                    <p className="text-sm text-[#8990a5] text-center mb-8">
+                      Same powerful features on every plan. Just choose how many credits you need.
+                    </p>
+
+                    {/* Pricing Cards */}
+                    <div className="grid gap-6 md:grid-cols-3 mt-2">
     { filteredPlansLifetime &&
-      filteredPlansLifetime.map((plan: {id: number; name: string; productId: string; priceId: string; price: number; features: string, currency: string}) => (
-      <div key={plan.id} className={`${bgColor} rounded-lg flex-1 p-6 border ${borderColor} relative min-h-[380px] hover:transform hover:translate-y-[-4px] hover:shadow-lg transition-all duration-300 hover:border-[#33d6e2]`}>
-        { plan.name === 'Premium' &&
-          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-[#33d6e2] text-[#141824] text-xs font-semibold py-1 px-2.5 rounded-xl uppercase">
-            Most Popular
-          </div>
-        }
-        <div className="mb-4">
-          <h3 className="font-semibold text-xl mb-2">{plan.name}</h3>
-        </div>
-        <div className="text-3xl font-bold my-2">
-          <span className="text-base align-top relative top-0.5">{plan.currency === 'INR' ? '₹' : '$'}</span>{plan.price}
-          <span className="text-sm font-normal text-[#8990a5]"></span>
-        </div>
-        <ul className="list-none p-0 my-6 mb-[70px]">
-      {plan.features
-        ? JSON.parse(plan.features).slice(0, 2).map((feature: string, index: number) => {
-            const match = feature.match(/^(\d+|Unlimited)\s(.+)$/); // Extracts number and text part
-            return (
-              <li key={index} className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-                <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-                {match ? (
-                  <span>
-                    <span className="text-[#33d6e2] font-medium">{match[1]}</span> {match[2]}
-                  </span>
-                ) : (
-                  <span>{feature}</span> // If no number detected, show feature as is
-                )}
-              </li>
-            );
-          })
-        : null}
-        <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-          <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-          <Flex align="center" gap={2}>
-            <span>SERP Analysis</span>
-            <Tooltip 
-              label="Analyzes top-ranking pages to identify what content performs best for your target keyword."
-              placement="top"
-              hasArrow
-              bg={tooltipBg}
-              color={tooltipColor}
-              fontSize="sm"
-              px={3}
-              py={2}
-              borderRadius="md"
-              sx={{
-                bg: tooltipBg + " !important",
-                color: tooltipColor + " !important",
-              }}
-            >
-              <Box display="inline-flex" alignItems="center">
-                <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-              </Box>
-            </Tooltip>
-          </Flex>
-        </li>
-        <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-          <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-          <Flex align="center" gap={2}>
-            <span>Keyword Intent Analysis</span>
-            <Tooltip 
-              label="Analyzes the search intent behind your target keyword to create content that matches user expectations."
-              placement="top"
-              hasArrow
-              bg={tooltipBg}
-              color={tooltipColor}
-              fontSize="sm"
-              px={3}
-              py={2}
-              borderRadius="md"
-              sx={{
-                bg: tooltipBg + " !important",
-                color: tooltipColor + " !important",
-              }}
-            >
-              <Box display="inline-flex" alignItems="center">
-                <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-              </Box>
-            </Tooltip>
-          </Flex>
-        </li>
-        <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-          <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-          <Flex align="center" gap={2}>
-            <span>Deep Research</span>
-            <Tooltip 
-              label="We break down your query, analyze hundreds of reliable sources, and produce fact-checked, accurate articles with zero hallucination."
-              placement="top"
-              hasArrow
-              bg={tooltipBg}
-              color={tooltipColor}
-              fontSize="sm"
-              px={3}
-              py={2}
-              borderRadius="md"
-              sx={{
-                bg: tooltipBg + " !important",
-                color: tooltipColor + " !important",
-              }}
-            >
-              <Box display="inline-flex" alignItems="center">
-                <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-              </Box>
-            </Tooltip>
-          </Flex>
-        </li>
-        <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-          <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-          <Flex align="center" gap={2}>
-            <span>Images & Infographics</span>
-            <Tooltip 
-              label="Automatically generates and includes relevant images and infographics to enhance your content."
-              placement="top"
-              hasArrow
-              bg={tooltipBg}
-              color={tooltipColor}
-              fontSize="sm"
-              px={3}
-              py={2}
-              borderRadius="md"
-              sx={{
-                bg: tooltipBg + " !important",
-                color: tooltipColor + " !important",
-              }}
-            >
-              <Box display="inline-flex" alignItems="center">
-                <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-              </Box>
-            </Tooltip>
-          </Flex>
-        </li>
-        <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-          <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-          <Flex align="center" gap={2}>
-            <span>AI SEO Optimization</span>
-            <Tooltip 
-              label="Optimizes content structure, headings, and keywords for better search engine rankings."
-              placement="top"
-              hasArrow
-              bg={tooltipBg}
-              color={tooltipColor}
-              fontSize="sm"
-              px={3}
-              py={2}
-              borderRadius="md"
-              sx={{
-                bg: tooltipBg + " !important",
-                color: tooltipColor + " !important",
-              }}
-            >
-              <Box display="inline-flex" alignItems="center">
-                <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-              </Box>
-            </Tooltip>
-          </Flex>
-        </li>
-        <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-          <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-          <Flex align="center" gap={2}>
-            <span>Bulk Writing Mode</span>
-            <Tooltip 
-              label="Generate multiple articles at once with batch processing capabilities for maximum efficiency."
-              placement="top"
-              hasArrow
-              bg={tooltipBg}
-              color={tooltipColor}
-              fontSize="sm"
-              px={3}
-              py={2}
-              borderRadius="md"
-              sx={{
-                bg: tooltipBg + " !important",
-                color: tooltipColor + " !important",
-              }}
-            >
-              <Box display="inline-flex" alignItems="center">
-                <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-              </Box>
-            </Tooltip>
-          </Flex>
-        </li>
-        <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-          <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-          <Flex align="center" gap={2}>
-            <span>WordPress Integration</span>
-            <Tooltip 
-              label="Seamlessly publish articles directly to your WordPress site with one-click integration."
-              placement="top"
-              hasArrow
-              bg={tooltipBg}
-              color={tooltipColor}
-              fontSize="sm"
-              px={3}
-              py={2}
-              borderRadius="md"
-              sx={{
-                bg: tooltipBg + " !important",
-                color: tooltipColor + " !important",
-              }}
-            >
-              <Box display="inline-flex" alignItems="center">
-                <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-              </Box>
-            </Tooltip>
-          </Flex>
-        </li>
-        <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-          <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-          <Flex align="center" gap={2}>
-            <span>Semantic SEO</span>
-            <Tooltip 
-              label="Enriches content with related terms and entities to improve topical authority."
-              placement="top"
-              hasArrow
-              bg={tooltipBg}
-              color={tooltipColor}
-              fontSize="sm"
-              px={3}
-              py={2}
-              borderRadius="md"
-              sx={{
-                bg: tooltipBg + " !important",
-                color: tooltipColor + " !important",
-              }}
-            >
-              <Box display="inline-flex" alignItems="center">
-                <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-              </Box>
-            </Tooltip>
-          </Flex>
-        </li>
-        <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-          <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-          <Flex align="center" gap={2}>
-            <span>High EEAT Score</span>
-            <Tooltip 
-              label="Includes citations, outbound links, semantic structure, and first-person insights for authoritative, trustworthy content."
-              placement="top"
-              hasArrow
-              bg={tooltipBg}
-              color={tooltipColor}
-              fontSize="sm"
-              px={3}
-              py={2}
-              borderRadius="md"
-              sx={{
-                bg: tooltipBg + " !important",
-                color: tooltipColor + " !important",
-              }}
-            >
-              <Box display="inline-flex" alignItems="center">
-                <BsFillQuestionCircleFill size={14} color="#8990a5"/>
-              </Box>
-            </Tooltip>
-          </Flex>
-        </li>
-        <li className="py-2 flex items-start text-[#8990a5] text-sm leading-tight">
-          <span className="text-[#33d6e2] mr-2 font-bold flex-shrink-0">✓</span>
-          <span>
-            {plan.name === 'Pro' ? 'Email Support' : 'Priority Support'}
-          </span>
-        </li>
-    </ul>
-       <Button  
-        size="md"
-        variant="solid"
-        colorScheme="brand"
-        h="50px"
-        minH="50px"
-        w="220px"
-        px="24px"
-          onClick={() => payStripeLifetime(plan.priceId, plan.name)} 
-          className={`absolute bottom-6 left-6 right-6 ${
-            (processingPlan === plan.priceId || (planData?.LifetimePlan && planData.LifetimePlan.planId === plan.id)) 
-              ? 'cursor-not-allowed opacity-50' 
-              : 'cursor-pointer'
-          }`}
-          disabled={processingPlan === plan.priceId || (planData?.LifetimePlan && planData.LifetimePlan.planId === plan.id)}
+      filteredPlansLifetime.map((plan: {id: number; name: string; productId: string; priceId: string; price: number; features: string, currency: string}) => {
+        // Extract credits from features
+        const featuresArray = plan.features ? JSON.parse(plan.features) : [];
+        const creditsMatch = featuresArray[0]?.match(/^(\d+|Unlimited)\s/);
+        const credits = creditsMatch ? creditsMatch[1] : '0';
+        const approximateArticles = credits === 'Unlimited' ? 'Unlimited' : `~${credits}`;
+        
+        // Get plan description
+        const getPlanDescription = (name: string) => {
+          if (name === 'Pro') return 'For individuals & light users';
+          if (name === 'Premium') return 'For creators & marketers';
+          if (name === 'Ultimate') return 'For agencies & power users';
+          return '';
+        };
+
+        return (
+        <div 
+          key={plan.id} 
+          className={`rounded-2xl border ${
+            plan.name === 'Premium' 
+              ? 'border-[#33d6e2] shadow-[0_0_30px_rgba(51,214,226,0.25)]' 
+              : 'border-[#1f2937]'
+          } bg-[#0b1120] px-6 py-6 relative`}
         >
-          { processingPlan === plan.priceId ? 'Processing Payment...' : 'Upgrade Now'}
-        </Button>
-      </div>
-      ))
-    }
+          { plan.name === 'Premium' &&
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+              <span className="inline-flex items-center px-4 py-1 rounded-full bg-[#33d6e2] text-xs font-semibold text-slate-900 uppercase tracking-wide">
+                Most Popular
+              </span>
+            </div>
+          }
+          
+          <h3 className={`text-lg font-semibold ${plan.name === 'Premium' ? 'mt-2' : ''}`}>{plan.name}</h3>
+
+          {/* PRICE + CREDITS CARD */}
+          <div className="mt-4 rounded-xl bg-[#020617] border border-[#111827] px-4 py-3 flex items-center justify-between text-xs">
+            <div>
+              <p className="text-[10px] uppercase tracking-wide text-[#8990a5]">Price</p>
+              <p className="text-sm font-semibold text-white">
+                {plan.currency === 'INR' ? '₹' : '$'}{plan.price}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] uppercase tracking-wide text-[#8990a5]">Credits</p>
+              <p className="text-sm font-semibold text-white">{credits}</p>
+            </div>
+          </div>
+
+          <p className="mt-2 text-[11px] uppercase tracking-wide text-[#33d6e2]">
+            {getPlanDescription(plan.name)}
+          </p>
+
+          {/* APPROX ARTICLES */}
+          <div className="mt-4 rounded-xl bg-[#020617] border border-[#111827] px-4 py-3 text-xs text-[#8990a5] relative">
+            <div className="flex items-center justify-between">
+              <p className="text-white font-semibold text-[13px]">
+                {approximateArticles === 'Unlimited' ? 'Unlimited Researched Articles' : `${approximateArticles} Researched Articles`}
+              </p>
+
+              {/* INFO ICON */}
+              <div className="relative group cursor-pointer">
+                <span className="text-[#33d6e2] text-sm font-bold">i</span>
+
+                <div className="absolute right-0 mt-2 w-64 rounded-lg bg-[#0b1120] border border-[#111827] px-3 py-3 text-xs text-[#8990a5] opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                  <p className="mb-1 text-[#33d6e2] font-semibold">How credits work:</p>
+                  <p>• Short form articles ≈ 0.1 credit each</p>
+                  <p>• Researched articles ≈ 1 credit each</p>
+                  <p>• Deep researched articles ≈ 2 credits each</p>
+                  <p className="mt-2 text-[#ffffff] font-medium">
+                    You can mix any type with your credits.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button 
+            onClick={() => payStripeLifetime(plan.priceId, plan.name)} 
+            disabled={processingPlan === plan.priceId || (planData?.LifetimePlan && planData.LifetimePlan.planId === plan.id)}
+            className={`mt-6 w-full py-3 rounded-xl bg-[#33d6e2] text-[#0b1120] font-semibold text-sm hover:bg-[#4cf0ff] transition ${
+              (processingPlan === plan.priceId || (planData?.LifetimePlan && planData.LifetimePlan.planId === plan.id))
+                ? 'cursor-not-allowed opacity-50' 
+                : 'cursor-pointer'
+            }`}
+          >
+            { processingPlan === plan.priceId ? 'Processing Payment...' : 'Upgrade Now'}
+          </button>
+        </div>
+      )})}
+                    </div>
+
+                    {/* SHARED FEATURES */}
+                    <div className="mt-10 border-t border-[#111827] pt-8">
+                      <h3 className="text-center text-xs font-semibold text-[#8990a5] uppercase tracking-[0.25em] mb-6">
+                        All Plans Include
+                      </h3>
+
+                      <div className="max-w-3xl mx-auto">
+                        <div className="grid gap-y-3 gap-x-10 sm:grid-cols-2 lg:grid-cols-3 text-sm text-[#8990a5]">
+                          <div>
+                            <div className="flex items-start mb-2">
+                              <span className="text-[#33d6e2] mr-2 mt-[2px]">✓</span>
+                              <span>SERP Analysis</span>
+                            </div>
+                            <div className="flex items-start mb-2">
+                              <span className="text-[#33d6e2] mr-2 mt-[2px]">✓</span>
+                              <span>Images & Infographics</span>
+                            </div>
+                            <div className="flex items-start mb-2">
+                              <span className="text-[#33d6e2] mr-2 mt-[2px]">✓</span>
+                              <span>WordPress Integration</span>
+                            </div>
+                            <div className="flex items-start">
+                              <span className="text-[#33d6e2] mr-2 mt-[2px]">✓</span>
+                              <span>Email Support</span>
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="flex items-start mb-2">
+                              <span className="text-[#33d6e2] mr-2 mt-[2px]">✓</span>
+                              <span>Keyword Intent Analysis</span>
+                            </div>
+                            <div className="flex items-start mb-2">
+                              <span className="text-[#33d6e2] mr-2 mt-[2px]">✓</span>
+                              <span>AI SEO Optimization</span>
+                            </div>
+                            <div className="flex items-start mb-2">
+                              <span className="text-[#33d6e2] mr-2 mt-[2px]">✓</span>
+                              <span>Semantic SEO</span>
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="flex items-start mb-2">
+                              <span className="text-[#33d6e2] mr-2 mt-[2px]">✓</span>
+                              <span>Deep Research</span>
+                            </div>
+                            <div className="flex items-start mb-2">
+                              <span className="text-[#33d6e2] mr-2 mt-[2px]">✓</span>
+                              <span>Bulk Writing Mode</span>
+                            </div>
+                            <div className="flex items-start">
+                              <span className="text-[#33d6e2] mr-2 mt-[2px]">✓</span>
+                              <span>High EEAT Score</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <p className="mt-6 text-center text-xs text-[#8990a5]">
+                      All plans include a 7-day money-back guarantee.
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
-          </Section>
+          </div>
       }
     </>
   );

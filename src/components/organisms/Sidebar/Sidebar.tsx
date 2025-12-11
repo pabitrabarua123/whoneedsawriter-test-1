@@ -10,12 +10,14 @@ import { useColorModeValues } from "@/hooks/useColorModeValues";
 import { usePathname } from "next/navigation";
 
 export const sidebarWidth = "80px";
+export const sidebarWidthMobile = "240px"; // Wider sidebar for mobile with text labels
 
 type SideBarProps = {
   currentPage: Routes;
+  onClose?: () => void;
 };
 
-export const SideBar: React.FC<SideBarProps> = ({ currentPage }) => {
+export const SideBar: React.FC<SideBarProps> = ({ currentPage, onClose }) => {
   const isMobile = useMobile();
   const { borderColor } = useColorModeValues();
   const pathname = usePathname();
@@ -28,23 +30,31 @@ export const SideBar: React.FC<SideBarProps> = ({ currentPage }) => {
     setLoadingRoute("");
   }, [pathname]);
 
+  // Use wider sidebar on mobile, narrow on desktop
+  const width = isMobile ? sidebarWidthMobile : sidebarWidth;
+  // When inside Drawer, use relative positioning instead of fixed
+  const position = isMobile ? "relative" : "fixed";
+  const zIndex = isMobile ? undefined : "9999"; // Let Drawer handle z-index on mobile
+
   return (
     <Flex
       h="100vh"
-      minW={sidebarWidth}
-      maxW={sidebarWidth}
+      minW={width}
+      maxW={width}
       flexDirection="column"
-      position="fixed"
+      position={position}
       top="0"
       bottom="auto"
       left="0"
       marginInlineStart={"0 !important"}
-      zIndex="9999"
+      zIndex={zIndex}
     >
       <SidebarMenuItems
         currentPage={currentPage}
         loadingRoute={loadingRoute}
         onMenuItemClick={setLoadingRoute}
+        onClose={onClose}
+        isMobile={isMobile}
       />
     </Flex>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { SideBar, sidebarWidth } from "@/components/organisms/Sidebar/Sidebar";
+import { SideBar, sidebarWidth, sidebarWidthMobile } from "@/components/organisms/Sidebar/Sidebar";
 import { Routes } from "@/data/routes";
 import { useMobile } from "@/hooks/useMobile";
 import {
@@ -12,19 +12,17 @@ import {
   DrawerContent,
   DrawerOverlay,
   Flex,
-  IconButton,
   Spinner,
   Stack,
   Text,
   useColorModeValue,
-  useDisclosure,
 } from "@chakra-ui/react";
 import { useSession } from "next-auth/react";
-import { TbMenu2 } from "react-icons/tb";
 import dynamic from "next/dynamic";
 import { useContext } from "react";
 import { PricingPopupContext } from "@/app/PricingPopupProvider";
 import PricingPopup from "@/components/PricingPopup/PricingPopup";
+import { SidebarDrawerProvider, useSidebarDrawer } from "@/app/SidebarDrawerProvider";
 
 // Dynamically import page components with loading states
 const DashboardComponent = dynamic(
@@ -66,13 +64,13 @@ type WebAppPageProps = {
   currentPage: Routes;
 };
 
-export const WebAppPage = ({ currentPage }: WebAppPageProps) => {
+const WebAppPageContent = ({ currentPage }: WebAppPageProps) => {
   const isMobile = useMobile();
   const { data: session, status } = useSession();
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen, onClose } = useSidebarDrawer();
   const { isOpen: isPricingPopupOpen, onOpen: onPricingPopupOpen, onClose: onPricingPopupClose } = useContext(PricingPopupContext);
-  const buttonColor = useColorModeValue("blackAlpha.600", "whiteAlpha.600");
   const buttonColorScheme = useColorModeValue("blackAlpha", "whiteAlpha");
+  const buttonColor = useColorModeValue("blackAlpha.600", "whiteAlpha.600");
 
   return (
     <Center minH="100vh">
@@ -87,42 +85,11 @@ export const WebAppPage = ({ currentPage }: WebAppPageProps) => {
       )}
       {status === "authenticated" && (
         <>
-          {isMobile && (
-            <Flex
-              boxShadow="sm"
-              w="100vw"
-              alignItems="flex-start"
-              justifyContent="start"
-              position="fixed"
-              top="0"
-              left="0"
-              p="8px"
-            >
-              <IconButton
-                icon={<TbMenu2 />}
-                aria-label={"menu"}
-                variant="ghost"
-                colorScheme={buttonColorScheme}
-                color={buttonColor}
-                mr="8px"
-                size="sm"
-                onClick={onOpen}
-              />
-            </Flex>
-          )}
           <Drawer isOpen={isOpen} placement="left" onClose={onClose} size="xs">
-            <DrawerOverlay />
-            <DrawerContent w={sidebarWidth} maxW={sidebarWidth}>
-              <DrawerCloseButton
-                colorScheme={buttonColorScheme}
-                color={buttonColor}
-                size="sm"
-                zIndex="1000"
-                position="fixed"
-              />
-
-              <DrawerBody>
-                <SideBar currentPage={currentPage} />
+            <DrawerOverlay onClick={onClose} />
+            <DrawerContent w={sidebarWidthMobile} maxW={sidebarWidthMobile} onClick={(e) => e.stopPropagation()}>
+              <DrawerBody p={0}>
+                <SideBar currentPage={currentPage} onClose={onClose} />
               </DrawerBody>
             </DrawerContent>
           </Drawer>
@@ -133,7 +100,7 @@ export const WebAppPage = ({ currentPage }: WebAppPageProps) => {
             minH="100vh"
             margin="0"
             padding="0"
-            pt={isMobile ? "48px" : "0"}
+            pt={isMobile ? "80px" : "0"}
             flexGrow={1}
             justifyContent="flex-start"
             pl={isMobile ? 0 : sidebarWidth}
@@ -183,5 +150,13 @@ export const WebAppPage = ({ currentPage }: WebAppPageProps) => {
       )}
 
     </Center>
+  );
+};
+
+export const WebAppPage = ({ currentPage }: WebAppPageProps) => {
+  return (
+    <SidebarDrawerProvider>
+      <WebAppPageContent currentPage={currentPage} />
+    </SidebarDrawerProvider>
   );
 };

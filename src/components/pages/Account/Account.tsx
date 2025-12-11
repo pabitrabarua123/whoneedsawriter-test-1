@@ -297,13 +297,8 @@ export const Account = () => {
     <>
       <Flex justifyContent="flex-start" w="100%" minH="100vh">
         <div className="flex-col w-full">
-          <div className="border-b">
-            <div className="flex h-16 items-center px-4">
-              <DashboardHeader />
-            </div>
-          </div>
-
-          <div className="flex-1 space-y-4 p-8 pt-17">
+          <DashboardHeader />
+          <div className="flex-1 space-y-4 px-[35px] pt-[15px] pb-[56px] md:pt-[96px]">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -343,7 +338,7 @@ export const Account = () => {
                               min="0"
                               max={totalCredits}
                               value={usedCredits}
-                              className="w-full h-3 rounded-lg appearance-none cursor-default slider"
+                              className="w-full h-1 rounded-lg appearance-none cursor-default slider py-[3px]"
                               style={{
                                 background: `linear-gradient(to right, #33d6e2 0%, #8b5cf6 ${usagePercentage}%, #e5e7eb ${usagePercentage}%, #e5e7eb 100%)`
                               }}
@@ -483,13 +478,13 @@ export const Account = () => {
                 <CardContent>
                   <div className="space-y-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Current Email</label>
-                      <div className="mt-1 p-3 bg-gray-50 rounded-lg border">
-                        <span className="text-gray-900">{user?.email || 'No email set'}</span>
+                      <label className="text-sm font-medium text-slate-500">Current Email</label>
+                      <div className="mt-1 p-3 rounded-lg border">
+                        <span className="text-slate-500">{user?.email || 'No email set'}</span>
                       </div>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-700">New Email</label>
+                      <label className="text-sm font-medium text-slate-500">New Email</label>
                       <input
                         type="email"
                         value={newEmail}

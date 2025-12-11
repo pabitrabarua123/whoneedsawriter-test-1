@@ -12,6 +12,7 @@ import {
   useColorModeValue,
   Button,
   Badge,
+  IconButton,
 } from "@chakra-ui/react";
 import {
   TbUsers,
@@ -24,6 +25,7 @@ import {
   TbWand,
   TbHistory,
   TbUser,
+  TbChevronLeft,
 } from "react-icons/tb";
 import { FaFolderOpen } from "react-icons/fa6";
 import { MdEditSquare } from "react-icons/md";
@@ -194,16 +196,26 @@ type MenuProps = {
   currentPage: Routes;
   loadingRoute: Routes | string;
   onMenuItemClick: (route: Routes | string) => void;
+  onClose?: () => void;
+  isMobile?: boolean;
 };
 
 export const SidebarMenuItems: React.FC<MenuProps> = ({
   currentPage,
   loadingRoute,
   onMenuItemClick,
+  onClose,
+  isMobile = false,
 }) => {
   const textColor = "#7f8aa3";
   const LogoComponent = useColorModeValue(LogoLight, Logo);
   const router = useRouter();
+
+  // Helper function to handle navigation and close drawer
+  const handleNavigation = (route: Routes | string) => {
+    router.push(route);
+    onClose?.();
+  };
 
   // Prefetch routes on component mount
   useEffect(() => {
@@ -222,48 +234,103 @@ export const SidebarMenuItems: React.FC<MenuProps> = ({
   }, [router]);
 
   return (
-    <Box p="0" width="100%" bg="linear-gradient(180deg, #151923, #111622)" minH="100vh" color="white" borderRight="1px solid #ffffff14">
-      <Flex alignItems="flex-start" flexDirection="column" p="16px 8px" gap="24px" h="100%">
-        {/* AI Button */}
-        <Flex w="100%" justifyContent="center">
-          <Button
-            color="white"
-            fontWeight="bold"
-            fontSize="16px"
-            h="48px"
-            w="48px"
-            borderRadius="12px"
-            mb="8px"
-            p="6px"
-            onClick={() => router.push(Routes.root)}
-          >
-            <Image src="/logo-icon.png" alt="Logo" width={36} height={36} />
-          </Button>
+    <Box p="0" width="100%" bg="linear-gradient(180deg, #151923, #111622)" minH="100vh" color="white" borderRight="1px solid #ffffff14" position="relative" sx={{ pointerEvents: 'auto' }}>
+      <Flex alignItems="flex-start" flexDirection="column" p={isMobile ? "16px" : "16px 8px"} gap="24px" h="100%" position="relative">
+        {/* Header Section with Logo and Close Button */}
+        <Flex w="100%" justifyContent="space-between" flexDirection={isMobile ? "row" : "column"} alignItems="center" mb={isMobile ? "8px" : "0"} position="relative"             borderBottom={isMobile ? "1px solid #ffffff14" : "none"}
+            pb={isMobile ? "16px" : "0"}>
+          <Flex alignItems="center" gap={isMobile ? "12px" : "0"}>
+            <Button
+              color="white"
+              fontWeight="bold"
+              fontSize="16px"
+              h="48px"
+              w="48px"
+              borderRadius="12px"
+              p="6px"
+              onClick={() => handleNavigation(Routes.root)}
+            >
+              <Image src="/logo-icon.png" alt="Logo" width={36} height={36} />
+            </Button>
+            {isMobile && (
+              <Text color="white" fontSize="16px" fontWeight="600">
+                Who
+                needs a
+                writer
+              </Text>
+            )}
+          </Flex>
+          {isMobile && onClose && (
+            <IconButton
+              aria-label="Close sidebar"
+              icon={<TbChevronLeft size="20px" />}
+              variant="ghost"
+              color="#a9b1c3"
+              border="1px solid #ffffff14"
+              borderRadius="8px"
+              size="sm"
+              minW="32px"
+              h="32px"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (onClose) {
+                  onClose();
+                }
+              }}
+              position="relative"
+              cursor="pointer"
+              _hover={{ bg: "rgba(255, 255, 255, 0.1)" }}
+              sx={{
+                pointerEvents: 'auto',
+                zIndex: 1000,
+                '&:hover': {
+                  bg: 'rgba(255, 255, 255, 0.1)'
+                }
+              }}
+            />
+          )}
         </Flex>
 
         {/* Navigation Items */}
-        <Flex flexDirection="column" gap="20px" w="100%" alignItems="center">
+        <Flex flexDirection="column" gap={isMobile ? "8px" : "20px"} w="100%" alignItems={isMobile ? "stretch" : "center"}>
           {/* Generator */}
-          <Flex flexDirection="column" alignItems="center" gap="4px" cursor="pointer" _hover={{ opacity: 0.8 }}>
+          <Flex 
+            flexDirection={isMobile ? "row" : "column"} 
+            alignItems={isMobile ? "center" : "center"} 
+            gap={isMobile ? "12px" : "4px"} 
+            cursor="pointer" 
+            _hover={{ opacity: 0.8 }}
+            p={isMobile ? "10px 12px" : "0"}
+            borderRadius={isMobile ? "8px" : "0"}
+            bg={isMobile && currentPage === Routes.articlegenerator ? "#4da3ff1a" : "transparent"}
+            onClick={() => handleNavigation(Routes.articlegenerator)}
+          >
             <Flex
-              w="44px"
-              h="44px"
+              w={isMobile ? "unset" : "44px"}
+              h={isMobile ? "unset" : "44px"}
               bg="transparent"
               borderRadius="12px"
               alignItems="center"
               justifyContent="center"
-              border="1px solid #ffffff14"
-              onClick={() => router.push(Routes.articlegenerator)}
+              border={isMobile ? "none" : "1px solid #ffffff14"}
             >
-              <RiEdit2Fill size="16px" color="#fbbf24" />
+              <RiEdit2Fill size={isMobile ? "22px" : "16px"} color="#fbbf24" />
             </Flex>
-            <Text color={textColor} fontSize="11px" fontWeight="500" textAlign="center" onClick={() => router.push(Routes.articlegenerator)}>
-              Generator
-            </Text>
+            {isMobile && (
+              <Text color="white" fontSize="14px" fontWeight="500" flex="1">
+                Generator
+              </Text>
+            )}
+            {!isMobile && (
+              <Text color={textColor} fontSize="11px" fontWeight="500" textAlign="center">
+                Generator
+              </Text>
+            )}
           </Flex>
 
           {/* Keywords */}
-          <Flex flexDirection="column" alignItems="center" gap="4px" cursor="pointer" _hover={{ opacity: 0.8 }}>
+          {/* <Flex flexDirection="column" alignItems="center" gap="4px" cursor="pointer" _hover={{ opacity: 0.8 }}>
            <Flex
               w="44px"
               h="44px"
@@ -279,25 +346,41 @@ export const SidebarMenuItems: React.FC<MenuProps> = ({
             <Text color={textColor} fontSize="11px" fontWeight="500" textAlign="center" onClick={() => router.push(Routes.batch  )}>
               Batches
             </Text>
-          </Flex>
+          </Flex> */}
 
           {/* History */}
-          <Flex flexDirection="column" alignItems="center" gap="4px" cursor="pointer" _hover={{ opacity: 0.8 }}>
+          <Flex 
+            flexDirection={isMobile ? "row" : "column"} 
+            alignItems={isMobile ? "center" : "center"} 
+            gap={isMobile ? "12px" : "4px"} 
+            cursor="pointer" 
+            _hover={{ opacity: 0.8 }}
+            p={isMobile ? "10px 12px" : "0"}
+            borderRadius={isMobile ? "8px" : "0"}
+            bg={isMobile && currentPage === Routes.batch ? "#4da3ff1a" : "transparent"}
+            onClick={() => handleNavigation(Routes.batch)}
+          >
             <Flex
-              w="44px"
-              h="44px"
+              w={isMobile ? "unset" : "44px"}
+              h={isMobile ? "unset" : "44px"}
               bg="transparent"
-              border="1px solid #ffffff14"
+              border={isMobile ? "none" : "1px solid #ffffff14"}
               borderRadius="12px"
               alignItems="center"
               justifyContent="center"
-              onClick={() => router.push(Routes.batch  )}
             >
-              <FaFolderOpen size="16px" color="#fbbf24" />
+              <FaFolderOpen size={isMobile ? "20px" : "16px"} color="#fbbf24" />
             </Flex>
-            <Text color={textColor} fontSize="11px" fontWeight="500" textAlign="center" onClick={() => router.push(Routes.batch  )}>
-              History
-            </Text>
+            {isMobile && (
+              <Text color="white" fontSize="14px" fontWeight="500" flex="1">
+                History
+              </Text>
+            )}
+            {!isMobile && (
+              <Text color={textColor} fontSize="11px" fontWeight="500" textAlign="center">
+                History
+              </Text>
+            )}
           </Flex>
         </Flex>
 
@@ -305,9 +388,20 @@ export const SidebarMenuItems: React.FC<MenuProps> = ({
         <Box flex="1" />
 
         {/* Account Section - Bottom Aligned */}
-        <Flex flexDirection="column" gap="20px" w="100%" alignItems="center" mt="auto">
+        <Flex flexDirection="column" gap={isMobile ? "8px" : "20px"} w="100%" alignItems={isMobile ? "stretch" : "center"} mt="auto">
           {/* Account */}
-          <Flex flexDirection="column" alignItems="center" gap="4px" cursor="pointer" _hover={{ opacity: 0.8 }} position="relative">
+          <Flex 
+            flexDirection={isMobile ? "row" : "column"} 
+            alignItems={isMobile ? "center" : "center"} 
+            gap={isMobile ? "12px" : "4px"} 
+            cursor="pointer" 
+            _hover={{ opacity: 0.8 }} 
+            position="relative"
+            p={isMobile ? "8px 12px" : "0"}
+            borderRadius={isMobile ? "8px" : "0"}
+            bg={isMobile && currentPage === Routes.account ? "rgba(255, 255, 255, 0.1)" : "transparent"}
+            onClick={() => handleNavigation(Routes.account)}
+          >
             <Flex
               w="44px"
               h="44px"
@@ -317,7 +411,6 @@ export const SidebarMenuItems: React.FC<MenuProps> = ({
               alignItems="center"
               justifyContent="center"
               position="relative"
-              onClick={() => router.push(Routes.account)}
             >
               <TbUser size="16px" color="#60a5fa" />
               <Badge
@@ -336,27 +429,51 @@ export const SidebarMenuItems: React.FC<MenuProps> = ({
                 PRO
               </Badge>
             </Flex>
-            <Text color={textColor} fontSize="11px" fontWeight="500" textAlign="center">
-              Account
-            </Text>
+            {isMobile && (
+              <Text color="white" fontSize="14px" fontWeight="500" flex="1">
+                Account
+              </Text>
+            )}
+            {!isMobile && (
+              <Text color={textColor} fontSize="11px" fontWeight="500" textAlign="center">
+                Account
+              </Text>
+            )}
           </Flex>
 
           {/* Upgrade */}
-          <Flex flexDirection="column" alignItems="center" gap="4px" cursor="pointer" _hover={{ opacity: 0.8 }}>
+          <Flex 
+            flexDirection={isMobile ? "row" : "column"} 
+            alignItems={isMobile ? "center" : "center"} 
+            gap={isMobile ? "12px" : "4px"} 
+            cursor="pointer" 
+            _hover={{ opacity: 0.8 }}
+            p={isMobile ? "8px 12px" : "0"}
+            borderRadius={isMobile ? "8px" : "0"}
+            bg={isMobile && currentPage === Routes.pricing ? "rgba(255, 255, 255, 0.1)" : "transparent"}
+            onClick={() => handleNavigation(Routes.pricing)}
+          >
             <Flex
               w="44px"
               h="44px"
-              bgGradient="linear(to-r, blue.500, purple.500)"
+              bg="transparent"
+              border="1px solid #ffffff14"
               borderRadius="12px"
               alignItems="center"
               justifyContent="center"
-              onClick={() => router.push(Routes.pricing)}
             >
-              <TbRocket size="16px" color="white" />
+              <TbRocket size="16px" color="#00bcd4" />
             </Flex>
-            <Text color={textColor} fontSize="11px" fontWeight="500" textAlign="center" onClick={() => router.push(Routes.pricing)}>
-              Upgrade
-        </Text>
+            {isMobile && (
+              <Text color="white" fontSize="14px" fontWeight="500" flex="1">
+                Upgrade
+              </Text>
+            )}
+            {!isMobile && (
+              <Text color={textColor} fontSize="11px" fontWeight="500" textAlign="center">
+                Upgrade
+              </Text>
+            )}
           </Flex>
         </Flex>
       </Flex>

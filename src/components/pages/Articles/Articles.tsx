@@ -96,6 +96,7 @@ import { Label } from "@/components/ui/label";
 import { useSearchParams, useRouter } from "next/navigation";
 import { formatDistanceToNow, format } from "date-fns";
 import { BsFillQuestionCircleFill } from "react-icons/bs";
+import DashboardHeader from "@/components/organisms/DashboardHeader/DashboardHeader";
 
 
 interface UserWebsite {
@@ -564,7 +565,10 @@ const ArticlesList: React.FC = () => {
   if (error) return <Text>An error occurred: {error.message}</Text>;
 
   return (
-    <Container pt={["16px", "40px"]} alignItems="flex-start" minH="100vh" maxW="container.md">
+    <Flex justifyContent="flex-start" w="100%" minH="100vh">
+        <div className="flex-col w-full">
+      <DashboardHeader /> 
+      <Container pt={["15px", "15px", "96px"]} alignItems="flex-center" maxWidth="1050px" mb="56px">
       <VStack align="flex-start" spacing={4}>
         <div className="flex flex-col gap-3 py-2">
           <Heading size="md" fontWeight="600" fontSize="lg" className="text-slate-500">
@@ -1044,8 +1048,8 @@ const ArticlesList: React.FC = () => {
             >
               Verify & Proceed
             </Button>
-          </ModalFooter>
-        </ModalContent>
+            </ModalFooter>
+          </ModalContent>
       </Modal>
 
       {/* Publishing Settings Modal */}
@@ -1210,7 +1214,9 @@ const ArticlesList: React.FC = () => {
           </ModalFooter>
         </ModalContent>
       </Modal>
-    </Container>
+      </Container>
+      </div>
+    </Flex>
   );
 };
 

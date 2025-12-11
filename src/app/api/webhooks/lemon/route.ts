@@ -319,6 +319,106 @@ export async function POST(req: NextRequest): Promise<Response> {
       }
       break;
 
+    case "subscription_payment_success":
+      try {
+        const invoice = event.data;
+        // Invoice structure differs from subscription - use type assertion
+        const invoiceAttributes = invoice.attributes as any;
+        const subscriptionId = invoiceAttributes.subscription_id;
+        const customUserId = event.meta.custom_data?.user_id;
+        const userEmail = invoiceAttributes.user_email;
+
+        // Find user plan by subscription ID or user ID
+        let userPlan;
+        if (subscriptionId) {
+          userPlan = await prismaClient.userPlan.findFirst({
+            where: {
+              lemonSubscriptionId: subscriptionId.toString(),
+            },
+          });
+        }
+
+        // Fallback: find by user_id if subscription ID lookup fails
+        if (!userPlan && customUserId) {
+          userPlan = await prismaClient.userPlan.findFirst({
+            where: {
+              userId: customUserId,
+            },
+          });
+        }
+
+        // Fallback: find by user email if still not found
+        if (!userPlan && userEmail) {
+          const user = await prismaClient.user.findFirst({
+            where: { email: userEmail },
+          });
+          if (user) {
+            userPlan = await prismaClient.userPlan.findFirst({
+              where: { userId: user.id },
+            });
+          }
+        }
+
+        if (!userPlan) {
+          console.error("User plan not found for subscription renewal:", subscriptionId);
+          return NextResponse.json(
+            { error: "User plan not found" },
+            { status: 400 }
+          );
+        }
+
+        // Get variant_id from existing userPlan to refresh balances
+        const variantId = userPlan.lemonVariantId 
+          ? parseInt(userPlan.lemonVariantId) 
+          : null;
+
+        if (!variantId) {
+          console.error("Variant ID not found in user plan for renewal:", userPlan.id);
+          return NextResponse.json(
+            { error: "Variant ID not found" },
+            { status: 400 }
+          );
+        }
+
+        // Calculate new renewal date (add 1 month to current validUntil or use current date + 1 month)
+        const currentValidUntil = userPlan.validUntil || new Date();
+        const newValidUntil = new Date(currentValidUntil);
+        newValidUntil.setMonth(newValidUntil.getMonth() + 1);
+
+        // Update subscription renewal date
+        await prismaClient.userPlan.update({
+          where: {
+            id: userPlan.id,
+          },
+          data: {
+            validUntil: newValidUntil,
+            lemonSubscriptionId: subscriptionId.toString(), // Ensure subscription ID is stored
+          },
+        });
+
+        // Refresh user balances for the renewed subscription
+        const balances = getBalanceFromVariantId(variantId);
+
+        await prismaClient.user.update({
+          where: {
+            id: userPlan.userId,
+          },
+          data: {
+            monthyBalance: balances.monthyBalance,
+            monthyPlan: balances.monthyPlan,
+          },
+        });
+
+        console.log(`Subscription renewed successfully: ${subscriptionId} (Invoice: ${invoice.id})`);
+      } catch (error) {
+        console.error("Error handling subscription renewal:", error);
+        return NextResponse.json(
+          { error: "Failed to process subscription renewal" },
+          { status: 500 }
+        );
+      }
+      break;
+
     case "order_created":
       try {
         // Handle one-time payments (lifetime plans)

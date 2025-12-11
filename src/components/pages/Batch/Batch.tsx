@@ -76,6 +76,7 @@ import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { formatDistanceToNow, format } from "date-fns";
 import { FaS } from "react-icons/fa6";
+import DashboardHeader from "@/components/organisms/DashboardHeader/DashboardHeader";
 
 type BatchData = {
   id: string;
@@ -295,7 +296,10 @@ const Batch: React.FC = () => {
   if (error) return <Text>An error occurred: {error.message}</Text>;
 
   return (
-    <Container pt={["16px", "40px"]} alignItems="flex-start" minH="100vh" maxW="container.md">
+    <Flex justifyContent="flex-start" w="100%" minH="100vh">
+        <div className="flex-col w-full">
+      <DashboardHeader /> 
+      <Container px="27px" pt={["15px", "15px", "96px"]} alignItems="flex-center" maxWidth="1050px" mb="56px">
       <VStack align="flex-start" spacing={4}>
         <Heading size="md">Batches Generated</Heading>
         <Text 
@@ -395,9 +399,11 @@ const Batch: React.FC = () => {
       <DeleteTodoDialog
         todo={todoToDelete || undefined}
         isOpen={isDeleteDialogOpen}
-        onClose={closeDeleteDialog}
-      />
-    </Container>
+          onClose={closeDeleteDialog}
+        />
+      </Container>
+    </div>
+    </Flex>
   );
 };
 

@@ -39,6 +39,7 @@ try{
   });
   return NextResponse.json({ url: session1.url });
 }catch(error:any){
+  console.log(error);
   return NextResponse.json({ error: error.message }, { status: 500 });
 }
 

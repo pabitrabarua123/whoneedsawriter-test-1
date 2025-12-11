@@ -562,7 +562,7 @@ const start25MinLoader = () => {
     <Flex justifyContent="flex-start" w="100%" minH="100vh">
         <div className="flex-col w-full">
         <DashboardHeader />
-        <Container pt={["96px", "110px"]} alignItems="flex-center" maxWidth="1050px" mb="56px">
+        <Container px="27px" pt={["15px", "15px", "96px"]} alignItems="flex-center" maxWidth="1050px" mb="56px">
          <VStack align="flex-start" spacing={6} width="100%">
       
       <Box className="border border-[#ffffff14] rounded-2xl p-[22px] w-full mb-4 bg-gradient-to-b from-[#151923] to-[#131827]" style={{ boxShadow: '0 10px 30px rgba(0,0,0,.35)' }}>
@@ -649,7 +649,7 @@ const start25MinLoader = () => {
                       <input
                         type="range"
                         min="500"
-                        max="3000"
+                        max="4000"
                         step="100"
                         value={wordLimit}
                         onChange={(e) => setWordLimit(e.target.value)}
