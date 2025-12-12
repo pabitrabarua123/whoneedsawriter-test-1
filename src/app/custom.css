@@ -289,3 +289,15 @@ div#blocknote-container h2 {
 code.bn-inline-content {
     white-space: pre-line;
 }
+
+@media (max-width: 400px) {
+    .buy-more-btn {
+        font-size: 10px !important;
+        margin-left: 2px !important;
+    }
+    .credits-header {
+        margin-right: 0 !important;
+        padding-left: 10px !important;
+        padding-right: 7px !important;
+    }
+}

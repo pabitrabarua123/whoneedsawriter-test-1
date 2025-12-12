@@ -53,7 +53,7 @@ const DashboardHeader = () => {
           <TeamSwitcher />
           <div className="ml-auto flex items-center space-x-4">
             {/* Credits Section */}
-            <div className={`flex items-center bg-[#151923] rounded-full px-4 py-2 ${isMobile ? 'mr-2' : 'mr-4'} border border-[#ffffff14]`}>
+            <div className={`credits-header flex items-center bg-[#151923] rounded-full px-4 py-2 ${isMobile ? 'mr-2' : 'mr-4'} border border-[#ffffff14]`}>
               <span className="text-[#a9b1c3] text-sm mr-2">Credits:</span>
               <span className="text-white font-medium text-sm mr-2">
                 {isLoading ? "..." : totalCredits.toFixed(1)}
@@ -61,7 +61,7 @@ const DashboardHeader = () => {
              
                 <button 
                  onClick={() => onPricingPopupOpen()}
-                 className="ml-3 bg-[transparent] text-[#eef2f7] hover:bg-[#13161b] border border-[#ffffff14] text-xs font-medium px-3 py-2 rounded-full transition-colors" style={{boxShadow: '0 10px 30px rgba(0,0,0,.35)'}}>
+                 className="buy-more-btn ml-3 bg-[transparent] text-[#eef2f7] hover:bg-[#13161b] border border-[#ffffff14] text-xs font-medium px-3 py-2 rounded-full transition-colors" style={{boxShadow: '0 10px 30px rgba(0,0,0,.35)'}}>
                   Buy More
                 </button>
            
