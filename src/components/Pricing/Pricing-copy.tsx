@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { Button, Flex, Heading, SimpleGrid, Text, Tooltip, useColorModeValue, Box } from "@chakra-ui/react";
 import { BsFillQuestionCircleFill } from "react-icons/bs";
-import { PricingPlan } from "./PricingPlan";
 import { useRouter } from "next/navigation";
 import { Section } from "../atoms/Section/Section";
 import { useState } from "react";
