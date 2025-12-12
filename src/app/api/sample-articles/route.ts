@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     // @ts-ignore - BlogPost model exists in schema but TypeScript may not recognize it yet
     const blogPosts = await prismaClient.blogPost.findMany({
       where: { published: true },
-      orderBy: { createdAt: 'asc' },
+      orderBy: { createdAt: 'desc' },
       take: 3,
       select: {
         id: true,

@@ -35,6 +35,7 @@ import { Routes } from "../../../data/routes";
 import { brandName, cannyUrl } from "@/config";
 import { Logo, LogoLight } from "@/components/atoms/Logo/Logo";
 import { useRouter } from "next/navigation";
+import { useUserPlanStatus } from "@/hooks/useUserPlanStatus";
 
 type MenuItemProps = {
   route?: Routes | string;
@@ -210,6 +211,7 @@ export const SidebarMenuItems: React.FC<MenuProps> = ({
   const textColor = "#7f8aa3";
   const LogoComponent = useColorModeValue(LogoLight, Logo);
   const router = useRouter();
+  const { hasPlan } = useUserPlanStatus();
 
   // Helper function to handle navigation and close drawer
   const handleNavigation = (route: Routes | string) => {
@@ -248,7 +250,7 @@ export const SidebarMenuItems: React.FC<MenuProps> = ({
               w="48px"
               borderRadius="12px"
               p="6px"
-              onClick={() => handleNavigation(Routes.root)}
+              onClick={() => handleNavigation(Routes.dashboard)}
             >
               <Image src="/logo-icon.png" alt="Logo" width={36} height={36} />
             </Button>
@@ -413,21 +415,23 @@ export const SidebarMenuItems: React.FC<MenuProps> = ({
               position="relative"
             >
               <TbUser size="16px" color="#60a5fa" />
-              <Badge
-                position="absolute"
-                top="90%"
-                left="50%"
-                transform="translate(-50%, -50%)"
-                bgGradient="linear(to-r, blue.500, purple.500)"
-                color="white"
-                fontSize="8px"
-                fontWeight="bold"
-                borderRadius="3px"
-                px="4px"
-                py="1px"
-              >
-                PRO
-              </Badge>
+              {hasPlan && (
+                <Badge
+                  position="absolute"
+                  top="90%"
+                  left="50%"
+                  transform="translate(-50%, -50%)"
+                  bgGradient="linear(to-r, blue.500, purple.500)"
+                  color="white"
+                  fontSize="8px"
+                  fontWeight="bold"
+                  borderRadius="3px"
+                  px="4px"
+                  py="1px"
+                >
+                  PRO
+                </Badge>
+              )}
             </Flex>
             {isMobile && (
               <Text color="white" fontSize="14px" fontWeight="500" flex="1">

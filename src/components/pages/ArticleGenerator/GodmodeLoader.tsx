@@ -143,12 +143,12 @@ const GodmodeLoader = ({ isProcessing, progress }: GodmodeLoaderProps) => {
                 colorScheme="teal"
                 size="lg"
                 onClick={() => {
-                  router.push('/article-generator');
-                  window.location.reload();
+                  router.push('/dashboard');
+                  //window.location.reload();
                 }}
                 w="100%"
               >
-                Back to Article Generator
+                Back to the Dashboard
               </Button>
             </>
           )}

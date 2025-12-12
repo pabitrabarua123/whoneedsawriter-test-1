@@ -235,7 +235,7 @@ fetch(geoUrl, {
             <div className="overflow-y-auto">
               {activeTab === 'monthly' ? (
                 <div className="bg-gradient-to-b from-[#151923] to-[#131827] rounded-3xl border border-[#111827] shadow-2xl overflow-hidden">
-      <p className="text-sm text-[#8990a5] text-center mb-8 mt-8">
+      <p className="text-sm text-[#8990a5] text-center mb-8 mt-8 px-4">
         Same powerful features on every plan. Just choose how many credits you need.
       </p>
                   {/* Body */}
@@ -416,7 +416,7 @@ fetch(geoUrl, {
 
                   {/* Body */}
                   <div className="px-8 pb-8 pt-6 text-white">
-                    <p className="text-sm text-[#8990a5] text-center mb-8">
+                    <p className="text-sm text-[#8990a5] text-center mb-8 px-4">
                       Same powerful features on every plan. Just choose how many credits you need.
                     </p>
 

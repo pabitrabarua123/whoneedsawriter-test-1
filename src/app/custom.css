@@ -285,3 +285,7 @@ div#blocknote-container h2 {
         align-items: flex-start;
     }
 }
+
+code.bn-inline-content {
+    white-space: pre-line;
+}

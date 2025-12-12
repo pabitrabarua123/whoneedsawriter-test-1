@@ -15,6 +15,7 @@ import { useState } from "react";
 import { onLoadCustomerPortal } from "@/components/AccountMenu/AccountMenu";
 import { useRouter } from "next/navigation";
 import { TbUser, TbReceipt, TbLogout } from "react-icons/tb";
+import { useUserPlanStatus } from "@/hooks/useUserPlanStatus";
 
 export function UserNav() {
   const { data: session } = useSession();
@@ -24,6 +25,8 @@ export function UserNav() {
   const userPictureUrl = session?.user.image;
 
   const [showNewWorkspaceDialog, setShowNewWorkspaceDialog] = useState(false);
+
+  const { hasPlan } = useUserPlanStatus();
 
   return (
     <>
@@ -37,9 +40,11 @@ export function UserNav() {
               </AvatarFallback>
             </Avatar>
             {/* PRO Badge */}
-            <span className="absolute -top-2 -right-1 bg-gradient-to-r from-[#4da3ff] to-[#8b5cf6] text-white text-[9px] font-semibold px-1.5 py-1 rounded leading-none">
-              PRO
-            </span>
+            {hasPlan && (
+              <span className="absolute -top-2 -right-1 bg-gradient-to-r from-[#4da3ff] to-[#8b5cf6] text-white text-[9px] font-semibold px-1.5 py-1 rounded leading-none">
+                PRO
+              </span>
+            )}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent 

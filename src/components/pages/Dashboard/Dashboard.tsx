@@ -5,9 +5,6 @@ import { Metadata } from "next";
 import { CalendarDateRangePicker } from "./components/date-range-picker";
 import { Overview } from "./components/overview";
 import { RecentSales } from "./components/recent-sales";
-import { PlanStatus } from "@/components/PlanStatus/PlanStatus";
-import TeamSwitcher from "./components/team-switcher";
-import { UserNav } from "./components/user-nav";
 import {
   Card,
   CardContent,
@@ -27,6 +24,7 @@ import { TourGuide, TourTrigger, useTourStatus, createDashboardTourConfig } from
 import { FirstLoginPopup } from "@/components/FirstLoginPopup/FirstLoginPopup";
 import { FirstLoginResponse } from "@/app/api/first-login/route";
 import { useState, useEffect } from "react";
+import DashboardHeader from "@/components/organisms/DashboardHeader/DashboardHeader";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -128,18 +126,8 @@ export const Dashboard = () => {
     <>
       <Flex justifyContent="flex-start" w="100%" minH="100vh">
         <div className="flex-col w-full">
-          <div className="border-b">
-            <div className="flex h-16 items-center px-4">
-              <TeamSwitcher />
-              <div className="ml-auto flex items-center space-x-4">
-                <PlanStatus />
-                <div data-tour="user-nav">
-                  <UserNav />
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="flex-1 space-y-4 p-8 pt-6">
+          <DashboardHeader />
+          <div className="flex-1 space-y-4 px-[35px] pt-[15px] pb-[56px] md:pt-[96px]">
             <div className="flex sm:items-center justify-between space-y-2 flex-col sm:flex-row">
               <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
               {/* <TourTrigger onStartTour={handleStartTour}>
@@ -155,7 +143,7 @@ export const Dashboard = () => {
               >
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-lg font-xl">
-                    Generate God Mode articles
+                    Generate Article(s)
                   </CardTitle>
                   <TbCrown className="h-6 w-6 text-muted-foreground transition-all duration-300 hover:text-yellow-500 hover:scale-110 group-hover:text-yellow-500 group-hover:scale-110" />
                 </CardHeader>
@@ -164,7 +152,7 @@ export const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card 
+              {/* <Card 
                 className="group cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105 hover:border-blue-300" 
                 onClick={() => router.push("/article-generator")}
                 data-tour="litemode-card"
@@ -176,7 +164,7 @@ export const Dashboard = () => {
                 <CardContent className="text-sm text-slate-500">
                   These are free to generate articles good for guest posting and other purposes. 
                 </CardContent>
-              </Card>
+              </Card> */}
 
               <Card 
                 className="group cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105 hover:border-blue-300" 
@@ -199,7 +187,7 @@ export const Dashboard = () => {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
-                    God Mode Generations
+                    Total Article(s) Generated
                   </CardTitle>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -231,7 +219,7 @@ export const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card>
+              {/* <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
                     Lite Mode Generations
@@ -259,13 +247,13 @@ export const Dashboard = () => {
                       {subscriptions?.value || 0}
                     </div>
                   </Skeleton>
-                  {/* <Skeleton isLoaded={!isLoading} mt="2px">
+                 <Skeleton isLoaded={!isLoading} mt="2px">
                     <p className="text-xs text-muted-foreground">
                       {subscriptions?.increase} from last month
                     </p>
-                  </Skeleton> */}
+                  </Skeleton>
                 </CardContent>
-              </Card>
+              </Card> */}
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

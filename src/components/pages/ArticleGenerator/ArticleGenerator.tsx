@@ -30,7 +30,7 @@ import {
 } from "react-icons/tb";
 import { GiCheckMark } from "react-icons/gi";
 import { HiOutlineCog6Tooth } from "react-icons/hi2";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { User } from "@prisma/client";
 import {
@@ -83,6 +83,7 @@ const ArticleGenerator: React.FC = () => {
 
 // Getting user details from the context
   const { user, isLoading, error } = useContext(UserContext) as UserContextType;
+  const queryClient = useQueryClient();
   //console.log(user, isLoading);
 
   // Auto-start tour for new users
@@ -558,6 +559,53 @@ const start25MinLoader = () => {
     };
   }, [isPerspectiveDropdownOpen]);
 
+  // Load saved profile values from user when popup opens
+  useEffect(() => {
+    if (showPublisherDetailsPopup && user) {
+      const userWithProfile = user as User & { toneChoice?: string; perspective?: string; description?: string };
+      if (userWithProfile.toneChoice) {
+        setToneChoice(userWithProfile.toneChoice);
+      }
+      if (userWithProfile.perspective) {
+        setPerspective(userWithProfile.perspective);
+      }
+      if (userWithProfile.description) {
+        setDescription(userWithProfile.description);
+      }
+    }
+  }, [showPublisherDetailsPopup, user]);
+
+  // Save profile mutation
+  const saveProfile = useMutation({
+    mutationFn: async (profileData: {
+      toneChoice: string;
+      perspective: string;
+      description: string;
+    }) => {
+      const response = await fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(profileData),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to save profile");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast.success("Profile saved successfully");
+      // Invalidate user query to refresh user data
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+      setShowPublisherDetailsPopup(false);
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to save profile");
+    },
+  });
+
   return (
     <Flex justifyContent="flex-start" w="100%" minH="100vh">
         <div className="flex-col w-full">
@@ -656,7 +704,7 @@ const start25MinLoader = () => {
                          className="w-full bg-slate-700 rounded-lg appearance-none cursor-pointer slider slider-sm"
                          style={{
                           padding: '0px',
-                           background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${((parseInt(wordLimit) - 500) / (3000 - 500)) * 100}%,rgb(246, 247, 249) ${((parseInt(wordLimit) - 500) / (3000 - 500)) * 100}%,rgb(232, 236, 243) 100%)`
+                           background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${((parseInt(wordLimit) - 500) / (4000 - 500)) * 100}%,rgb(246, 247, 249) ${((parseInt(wordLimit) - 500) / (4000 - 500)) * 100}%,rgb(232, 236, 243) 100%)`
                          }}
                       />
                     </div>
@@ -996,6 +1044,8 @@ seo content writing tips`}
             </Button>
             <Button
               colorScheme="brand"
+              bg="#2c5282"
+              color="#eef2f7"
               className="text-[14px]"
               px={4}
               rounded="lg"
@@ -1095,7 +1145,7 @@ seo content writing tips`}
          <div className="flex flex-wrap gap-3">
            <button
              type="button"
-             className="w-fit flex items-center gap-3 px-3 py-2 rounded-full border bg-[#1b2232] border-[#ffffff14] hover-gradient"
+             className="w-fit flex items-center gap-2 px-3 py-2 rounded-full border bg-[#1b2232] border-[#ffffff14] hover-gradient"
              style={{ transition: 'background .2s ease, box-shadow .2s ease, border-color .2s ease' }}
            >
              <div className="w-6 h-6 flex items-center justify-center">
@@ -1112,7 +1162,7 @@ seo content writing tips`}
 
            <button
              type="button"
-             className="w-fit flex items-center gap-3 px-4 py-2 rounded-full border bg-[#1b2232] border-[#ffffff14] hover-gradient"
+             className="w-fit flex items-center gap-2 px-4 py-2 rounded-full border bg-[#1b2232] border-[#ffffff14] hover-gradient"
              style={{ transition: 'background .2s ease, box-shadow .2s ease, border-color .2s ease' }}
            >
              <div className="w-6 h-6 flex items-center justify-center">
@@ -1127,7 +1177,7 @@ seo content writing tips`}
 
            <button
              type="button"
-             className="w-fit flex items-center gap-3 px-4 py-2 rounded-full border bg-[#1b2232] border-[#ffffff14] hover-gradient"
+             className="w-fit flex items-center gap-2 px-4 py-2 rounded-full border bg-[#1b2232] border-[#ffffff14] hover-gradient"
              style={{ transition: 'background .2s ease, box-shadow .2s ease, border-color .2s ease' }}
            >
              <div className="w-6 h-6 flex items-center justify-center">
@@ -1144,7 +1194,7 @@ seo content writing tips`}
 
            <button
              type="button"
-             className="w-fit flex items-center gap-3 px-4 py-2 rounded-full border bg-[#1b2232] border-[#ffffff14] hover-gradient"
+             className="w-fit flex items-center gap-2 px-4 py-2 rounded-full border bg-[#1b2232] border-[#ffffff14] hover-gradient"
              style={{ transition: 'background .2s ease, box-shadow .2s ease, border-color .2s ease' }}
            >
              <div className="w-6 h-6 flex items-center justify-center">
@@ -1161,7 +1211,7 @@ seo content writing tips`}
 
            <button
              type="button"
-             className="w-fit flex items-center gap-3 px-4 py-2 rounded-full border bg-[#1b2232] border-[#ffffff14] hover-gradient"
+             className="w-fit flex items-center gap-2 px-4 py-2 rounded-full border bg-[#1b2232] border-[#ffffff14] hover-gradient"
              style={{ transition: 'background .2s ease, box-shadow .2s ease, border-color .2s ease' }}
            >
              <div className="w-6 h-6 flex items-center justify-center">
@@ -1175,7 +1225,7 @@ seo content writing tips`}
 
            <button
              type="button"
-             className="w-fit flex items-center gap-3 px-4 py-2 rounded-full border bg-[#1b2232] border-[#ffffff14] hover-gradient"
+             className="w-fit flex items-center gap-2 px-4 py-2 rounded-full border bg-[#1b2232] border-[#ffffff14] hover-gradient"
              style={{ transition: 'background .2s ease, box-shadow .2s ease, border-color .2s ease' }}
            >
              <div className="w-6 h-6 flex items-center justify-center">
@@ -1352,13 +1402,18 @@ seo content writing tips`}
             </Button>
             <Button
               onClick={() => {
-                // Save profile logic here
-                setShowPublisherDetailsPopup(false);
+                saveProfile.mutate({
+                  toneChoice,
+                  perspective,
+                  description,
+                });
               }}
               colorScheme="brand"
               px={4}
               rounded="lg"
               _hover={{ bg: "blue.700", color: "white" }}
+              isLoading={saveProfile.isPending}
+              loadingText="Saving..."
             >
               Save Profile
             </Button>
