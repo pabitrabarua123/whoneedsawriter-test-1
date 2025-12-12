@@ -20,13 +20,7 @@ const DashboardHeader = () => {
   const buttonColor = useColorModeValue("whiteAlpha.600", "whiteAlpha.600");
   
   // Get drawer state from context (will be undefined if not in provider, which is fine)
-  let drawerState;
-  try {
-    drawerState = useSidebarDrawer();
-  } catch {
-    // Not in provider context, drawer state is undefined
-    drawerState = undefined;
-  }
+  const drawerState = useSidebarDrawer();
 
   const topPosition = '0';
 

@@ -32,8 +32,14 @@ export const SidebarDrawerProvider = ({ children }: { children: ReactNode }) => 
 
 export const useSidebarDrawer = () => {
   const context = useContext(SidebarDrawerContext);
+  // Return default values when not in provider to allow conditional usage
   if (context === undefined) {
-    throw new Error("useSidebarDrawer must be used within a SidebarDrawerProvider");
+    return {
+      isOpen: false,
+      onOpen: () => {},
+      onClose: () => {},
+      onToggle: () => {},
+    };
   }
   return context;
 };
