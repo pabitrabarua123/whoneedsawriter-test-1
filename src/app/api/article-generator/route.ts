@@ -106,6 +106,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid model" }, { status: 400 });
     }
 
+    console.log(toneChoice, perspective, description, references);
+
     if(is_godmode){
         // Split the text into individual keywords
         const keywords = text.split('\n').filter(keyword => keyword.trim() !== '');

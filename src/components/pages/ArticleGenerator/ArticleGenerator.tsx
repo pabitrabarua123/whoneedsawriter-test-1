@@ -559,9 +559,9 @@ const start25MinLoader = () => {
     };
   }, [isPerspectiveDropdownOpen]);
 
-  // Load saved profile values from user when popup opens
+  // Load saved profile values from user when component mounts or user data changes
   useEffect(() => {
-    if (showPublisherDetailsPopup && user) {
+    if (user) {
       const userWithProfile = user as User & { toneChoice?: string; perspective?: string; description?: string };
       if (userWithProfile.toneChoice) {
         setToneChoice(userWithProfile.toneChoice);
@@ -573,7 +573,7 @@ const start25MinLoader = () => {
         setDescription(userWithProfile.description);
       }
     }
-  }, [showPublisherDetailsPopup, user]);
+  }, [user]);
 
   // Save profile mutation
   const saveProfile = useMutation({
