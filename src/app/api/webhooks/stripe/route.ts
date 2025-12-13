@@ -152,7 +152,7 @@ switch (stripeProductId) {
       });
       }
 
-     // handle lifetime stripe payment if the checkout session is a payment
+     // handle lifetime stripe payment 
     if(checkoutSession.mode == 'payment') {
               
       let amount_total_real = (checkoutSession.amount_total ?? 0) / 100;
