@@ -81,9 +81,9 @@ export const Header = ({}: HeaderProps) => {
           >
             {isLogged ? "Go to app" : "Get started"}
           </Button>
-          <Flex display={["none", null, "flex"]}>
+          {/* <Flex display={["none", null, "flex"]}>
             <DarkModeSwitch />
-          </Flex>
+          </Flex> */}
           <Flex display={["flex", "none"]}>
             <IconButton
               aria-label={"menu"}
@@ -116,7 +116,7 @@ export const Header = ({}: HeaderProps) => {
                     Pricing
                   </Link>
                   <Link href={Routes.login}>Login</Link>
-                  <DarkModeSwitch />
+                  {/* <DarkModeSwitch /> */}
                   <Button
                     size="sm"
                     variant="solid"
