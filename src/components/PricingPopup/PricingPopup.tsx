@@ -173,12 +173,12 @@ import { useQuery } from "@tanstack/react-query";
     };
   
     return (
-      <Modal isOpen={isOpen} onClose={onClose} size="6xl" isCentered>
+      <Modal isOpen={isOpen} onClose={onClose} size="7xl" isCentered>
         <ModalOverlay bg="blackAlpha.700" />
         <ModalContent 
           bg="#050816" 
           borderRadius="24px" 
-          maxW="5xl" 
+          maxW="6xl" 
           maxH="90vh" 
           boxShadow="2xl"
           border="1px solid #111827"
@@ -223,7 +223,7 @@ import { useQuery } from "@tanstack/react-query";
               <div className="text-center text-[#8990a5] py-8">Loading plans...</div>
             )}
 
-            <div className="grid gap-6 md:grid-cols-3 mt-2">
+            <div className="grid gap-6 md:grid-cols-4 mt-2">
               {filteredPlansSubscription &&
                 filteredPlansSubscription.map((plan: {id: number; name: string; productId: string; priceId: string; price: number; features: string, currency: string}) => {
                   // Extract credits from features
@@ -234,6 +234,7 @@ import { useQuery } from "@tanstack/react-query";
                   
                   // Get plan description
                   const getPlanDescription = (name: string) => {
+                    if (name === 'Starter') return 'For individuals starting out';
                     if (name === 'Pro') return 'For individuals & light users';
                     if (name === 'Premium') return 'For creators & marketers';
                     if (name === 'Ultimate') return 'For agencies & power users';
@@ -254,7 +255,7 @@ import { useQuery } from "@tanstack/react-query";
                     >
                       {plan.name === 'Premium' && (
                         <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                          <span className="inline-flex items-center px-4 py-1 rounded-full bg-[#33d6e2] text-xs font-semibold text-slate-900 uppercase tracking-wide">
+                          <span className="inline-flex items-center px-4 py-1 rounded-full bg-[#33d6e2] text-[10px] font-semibold text-slate-900 uppercase tracking-wide">
                             Most Popular
                           </span>
                         </div>

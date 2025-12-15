@@ -230,7 +230,7 @@ fetch(geoUrl, {
       }
 
       {!isLoadingPrice &&
-            <div className="w-full max-w-5xl mx-auto px-4">
+            <div className="w-full max-w-6xl mx-auto px-4">
             {/* Content Area with Plans */}
             <div className="overflow-y-auto">
               {activeTab === 'monthly' ? (
@@ -243,7 +243,7 @@ fetch(geoUrl, {
                     
 
                     {/* Pricing Cards */}
-                    <div className="grid gap-6 md:grid-cols-3 mt-2">
+                    <div className="grid gap-6 md:grid-cols-4 mt-2">
     { filteredPlansSubscription &&
       filteredPlansSubscription.map((plan: {id: number; name: string; productId: string; priceId: string; price: number; features: string, currency: string}) => {
         // Extract credits from features
@@ -254,6 +254,7 @@ fetch(geoUrl, {
         
         // Get plan description
         const getPlanDescription = (name: string) => {
+          if (name === 'Starter') return 'For individuals starting out';
           if (name === 'Pro') return 'For individuals & light users';
           if (name === 'Premium') return 'For creators & marketers';
           if (name === 'Ultimate') return 'For agencies & power users';
@@ -271,7 +272,7 @@ fetch(geoUrl, {
         >
           { plan.name === 'Premium' &&
             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-              <span className="inline-flex items-center px-4 py-1 rounded-full bg-[#33d6e2] text-xs font-semibold text-slate-900 uppercase tracking-wide">
+              <span className="inline-flex items-center px-4 py-1 rounded-full bg-[#33d6e2] text-[10px] font-semibold text-slate-900 uppercase tracking-wide">
                 Most Popular
               </span>
             </div>

@@ -90,19 +90,10 @@ export async function POST(req: NextRequest): Promise<Response> {
       var monthyPlan:number = 0;
 
 switch (stripeProductId) {
-  case 'prod_SNpzHYxK73pcMz':
-    monthyBalance = 20;
-    monthyPlan = 20;
-    break;
 
-  case 'prod_SNpyVYxA6fTEE7':
-    monthyBalance = 60;
-    monthyPlan = 60;
-    break;
-
-  case 'prod_SNpyaI8RYkPnd9':
-    monthyBalance = 200;
-    monthyPlan = 200;
+  case 'prod_TblYpKYBAelZhk':
+    monthyBalance = 5;
+    monthyPlan = 5;
     break;
 
   case 'prod_SZigsQFIGhkCr0':
@@ -159,20 +150,6 @@ switch (stripeProductId) {
       var lifetimeBalance:number = 0;
       var lifetimePlan:number = 0;
       switch (amount_total_real) {
-        case 45:
-          lifetimeBalance = 30;
-          lifetimePlan = 30;
-          break;
-          
-        case 120:
-          lifetimeBalance = 75;
-          lifetimePlan = 75;
-          break;
-        
-        case 300:
-          lifetimeBalance = 250;
-          lifetimePlan = 250;
-          break;
 
         case 3700:
           lifetimeBalance = 30;
@@ -275,19 +252,10 @@ switch (stripeProductId) {
       var monthyPlan: number = 0;
 
       switch (stripeProductId) {
-        case 'prod_SNpzHYxK73pcMz':
-          monthyBalance = 20;
-          monthyPlan = 20;
-          break;
 
-        case 'prod_SNpyVYxA6fTEE7':
-          monthyBalance = 60;
-          monthyPlan = 60;
-          break;
-
-        case 'prod_SNpyaI8RYkPnd9':
-          monthyBalance = 200;
-          monthyPlan = 200;
+        case 'prod_TblYpKYBAelZhk':
+          monthyBalance = 5;
+          monthyPlan = 5;
           break;
 
         case 'prod_SZigsQFIGhkCr0':

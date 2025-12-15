@@ -308,17 +308,62 @@ export const Account = () => {
                 <CardContent>
                   <Skeleton isLoaded={!isLoading}>
                     {(() => {
-                      // Calculate total credits and used credits
+                      // Calculate total credits, remaining credits and used credits
                       const monthlyPlan = user?.monthyPlan ?? 0;
                       const lifetimePlan = user?.lifetimePlan ?? 0;
-                      const freeCredits = 4; // Default free credits
-                      const totalCredits = monthlyPlan + lifetimePlan + freeCredits;
-                      
+
+                      const baseFreeCredits = 4; // fixed total free credits
+                      const currentFreeCredits = user?.freeCredits ?? baseFreeCredits; // remaining free credits
+
                       const monthlyBalance = user?.monthyBalance ?? 0;
                       const lifetimeBalance = user?.lifetimeBalance ?? 0;
-                      const currentFreeCredits = user?.freeCredits ?? 4;
-                      const remainingCredits = monthlyBalance + lifetimeBalance + currentFreeCredits;
-                      
+
+                      let totalCredits = 0;
+                      let remainingCredits = 0;
+
+                      // 1. No paid plans → only free credits
+                      if (monthlyPlan === 0 && lifetimePlan === 0) {
+                        totalCredits = baseFreeCredits;           // always show full free quota (e.g. 4)
+                        remainingCredits = currentFreeCredits;    // remaining free credits (e.g. 3)
+                      } else {
+                        // 2. Has paid plans → ignore free credits
+                        if (monthlyPlan > 0 && lifetimePlan > 0) {
+                          // Both monthly and lifetime plans exist
+                          if (monthlyBalance > 0 && lifetimeBalance > 0) {
+                            // Both have remaining balance → use combined quota
+                            totalCredits = monthlyPlan + lifetimePlan;        // e.g. 20 + 30
+                            remainingCredits = monthlyBalance + lifetimeBalance;
+                          } else if (monthlyBalance > 0) {
+                            // Only monthly has remaining balance
+                            totalCredits = monthlyPlan;
+                            remainingCredits = monthlyBalance;
+                          } else if (lifetimeBalance > 0) {
+                            // Only lifetime has remaining balance
+                            totalCredits = lifetimePlan;
+                            remainingCredits = lifetimeBalance;
+                          } else {
+                            // Both consumed → show monthly quota only (e.g. 0/20)
+                            totalCredits = monthlyPlan;
+                            remainingCredits = 0;
+                          }
+                        } else if (monthlyPlan > 0) {
+                          // Only monthly plan
+                          totalCredits = monthlyPlan;
+                          remainingCredits = monthlyBalance;
+                        } else {
+                          // Only lifetime plan
+                          if (lifetimeBalance > 0) {
+                            // Some lifetime remaining → show lifetime plan normally
+                            totalCredits = lifetimePlan;
+                            remainingCredits = lifetimeBalance;
+                          } else {
+                            // Lifetime balance is 0 → fall back to free credits
+                            totalCredits = baseFreeCredits;        // e.g. 4
+                            remainingCredits = currentFreeCredits; // e.g. 1 or 0
+                          }
+                        }
+                      }
+
                       const usedCredits = totalCredits - remainingCredits;
                       const usagePercentage = totalCredits > 0 ? Math.round((usedCredits / totalCredits) * 100) : 0;
                       
@@ -327,7 +372,7 @@ export const Account = () => {
                           {/* Credits display */}
                           <div className="text-left">
                             <div className="text-lg font-bold">
-                              {usedCredits}/{totalCredits} credits used ({usagePercentage}%)
+                              {remainingCredits}/{totalCredits} credits remaining ({usagePercentage}% used)
                             </div>
                           </div>
                           

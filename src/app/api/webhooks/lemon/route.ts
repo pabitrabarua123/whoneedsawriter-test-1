@@ -50,6 +50,11 @@ function getBalanceFromVariantId(variantId: number) {
   // You'll need to replace these with your actual variant IDs from LemonSqueezy
   switch (variantId.toString()) { 
     // Basic Monthly Plan
+    case '1150108':
+      monthyBalance = 5;
+      monthyPlan = 5;
+      break;
+    
     case '914683':
       monthyBalance = 20;
       monthyPlan = 20;
