@@ -202,7 +202,7 @@ export async function GET() {
             transactionalId: "cmb2jl0ijc6ea430in4xiowyv",
             email: user.email,
             dataVariables: {
-              text1: `${notReadyArticles.length} articles of god mode failed to generate and balance has been refunded to your account. Please retry generation after 20 minutes.`,
+              text1: `${notReadyArticles.length} articles of batch ${batch.name} failed to generate and balance has been refunded to your account. Please retry generation after 20 minutes.`,
               text2: `<table border="1" cellspacing="0" cellpadding="8" style="margin: 0 auto;">
               <thead>
                <tr>
@@ -369,7 +369,7 @@ export async function GET() {
             transactionalId: "cmb2jl0ijc6ea430in4xiowyv",
             email: user.email,
             dataVariables: {
-              text1: `Here is the current status of godemode articles in batch ${batch.name}. We will update you again in 15 minutes.`,
+              text1: `Here is the current status of articles generated in batch ${batch.name}. We will update you again in 15 minutes.`,
               subject: `Articles generated in ${batch.name} are partially completed`,
               text2: `<table border="1" cellspacing="0" cellpadding="8" style="margin: 0 auto;">
               <thead>
@@ -518,7 +518,7 @@ export async function GET() {
             transactionalId: "cmb2jl0ijc6ea430in4xiowyv",
             email: user.email,
             dataVariables: {
-              text1: `${notReadyArticles.length} Articles Generated on God mode will be completed in another 15 minutes`,
+              text1: `${notReadyArticles.length} Articles of batch ${batch.name} will be completed in another 15 minutes`,
               text2: `<table border="1" cellspacing="0" cellpadding="8" style="margin: 0 auto;">
               <thead>
                <tr>
