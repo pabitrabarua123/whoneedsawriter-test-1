@@ -261,20 +261,18 @@ import { useQuery } from "@tanstack/react-query";
                         </div>
                       )}
 
-                      <h3 className={`text-lg font-semibold ${plan.name === 'Premium' ? 'mt-2' : ''}`}>{plan.name}</h3>
-
+                      <h3 className={`text-lg font-semibold mb-2 ${plan.name === 'Premium' ? 'mt-2' : ''}`}>{plan.name}</h3>
+                      <div className="text-left">
+                        <p className="text-2xl font-bold text-white">
+                          {plan.currency === 'INR' ? '₹' : '$'}{plan.price} 
+                          <span className="text-[11px] text-[#8990a5]">/month</span>
+                        </p>
+                      </div>
                       {/* PRICE + CREDITS CARD */}
                       <div className="mt-4 rounded-xl bg-[#020617] border border-[#111827] px-4 py-3 flex items-center justify-between text-xs">
-                        <div>
-                          <p className="text-[10px] uppercase tracking-wide text-[#8990a5]">Price</p>
-                          <p className="text-sm font-semibold text-white">
-                            {plan.currency === 'INR' ? '₹' : '$'}{plan.price} 
-                            <span className="text-[11px] text-[#8990a5]">/month</span>
-                          </p>
-                        </div>
-                        <div className="text-right">
+                        <div className="text-left">
                           <p className="text-[10px] uppercase tracking-wide text-[#8990a5]">Credits</p>
-                          <p className="text-sm font-semibold text-white">{credits}</p>
+                          <p className="text-sm font-semibold text-white">{credits}<span className="text-[11px] text-[#8990a5]">/month</span></p>
                         </div>
                       </div>
 

@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import { Text, Tooltip, useColorModeValue, Flex, Heading } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Section } from "../atoms/Section/Section";
 import { useColorModeValues } from "@/hooks/useColorModeValues";
 import { useQuery } from "@tanstack/react-query";
 import { useIsLogged } from "@/hooks/useIsLogged";
+import { Routes } from "@/data/routes";
 
 export const Pricing = () => {
   const router = useRouter();
@@ -219,7 +221,7 @@ fetch(geoUrl, {
           fontWeight="extrabold"
           textAlign="center"
         >
-          Upgrade your plan
+          {isLogged ? "Upgrade your plan" : "Choose your Plan and get started"}
         </Heading>
 
       </Section>
@@ -278,20 +280,19 @@ fetch(geoUrl, {
             </div>
           }
           
-          <h3 className={`text-lg font-semibold ${plan.name === 'Premium' ? 'mt-2' : ''}`}>{plan.name}</h3>
-
-          {/* PRICE + CREDITS CARD */}
-          <div className="mt-4 rounded-xl bg-[#020617] border border-[#111827] px-4 py-3 flex items-center justify-between text-xs">
-            <div>
-              <p className="text-[10px] uppercase tracking-wide text-[#8990a5]">Price</p>
-              <p className="text-sm font-semibold text-white">
+          <h3 className={`text-lg font-semibold mb-2 ${plan.name === 'Premium' ? 'mt-2' : ''}`}>{plan.name}</h3>
+          <div className="text-left">
+              <p className="text-2xl font-bold text-white">
                 {plan.currency === 'INR' ? '₹' : '$'}{plan.price} 
                 <span className="text-[11px] text-[#8990a5]">/month</span>
               </p>
             </div>
-            <div className="text-right">
+          {/* PRICE + CREDITS CARD */}
+          <div className="mt-4 rounded-xl bg-[#020617] border border-[#111827] px-4 py-3 flex items-center justify-between text-xs">
+
+            <div className="text-left">
               <p className="text-[10px] uppercase tracking-wide text-[#8990a5]">Credits</p>
-              <p className="text-sm font-semibold text-white">{credits}</p>
+              <p className="text-sm font-semibold text-white">{credits}<span className="text-[11px] text-[#8990a5]">/month</span></p>
             </div>
           </div>
 
@@ -345,7 +346,16 @@ fetch(geoUrl, {
 
                     {/* SHARED FEATURES */}
                     <div className="mt-10 border-t border-[#111827] pt-8">
-                      <h3 className="text-center text-xs font-semibold text-[#8990a5] uppercase tracking-[0.25em] mb-6">
+                      <p className="text-center text-sm text-[#8990a5] mb-4">
+                        Not Sure?{" "}
+                        <Link 
+                          href={isLogged ? Routes.articlegenerator : Routes.signUp}
+                          className="text-[#33d6e2] hover:text-[#4cf0ff] underline transition"
+                        >
+                          Try for Free
+                        </Link>
+                      </p>
+                      <h3 className="text-center text-xs font-semibold text-[#8990a5] uppercase tracking-[0.25em] mt-12 mb-6">
                         All Plans Include
                       </h3>
 
@@ -517,6 +527,15 @@ fetch(geoUrl, {
 
                     {/* SHARED FEATURES */}
                     <div className="mt-10 border-t border-[#111827] pt-8">
+                      <p className="text-center text-sm text-[#8990a5] mb-4">
+                        Not Sure?{" "}
+                        <Link 
+                          href={isLogged ? Routes.articlegenerator : Routes.signUp}
+                          className="text-[#33d6e2] hover:text-[#4cf0ff] underline transition"
+                        >
+                          Try for Free
+                        </Link>
+                      </p>
                       <h3 className="text-center text-xs font-semibold text-[#8990a5] uppercase tracking-[0.25em] mb-6">
                         All Plans Include
                       </h3>
