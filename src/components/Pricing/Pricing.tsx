@@ -221,7 +221,7 @@ fetch(geoUrl, {
           fontWeight="extrabold"
           textAlign="center"
         >
-          {isLogged ? "Upgrade your plan" : "Choose your Plan and get started"}
+          {isLogged ? "Upgrade your plan" : "Choose your Plan"}
         </Heading>
 
       </Section>
@@ -337,7 +337,7 @@ fetch(geoUrl, {
               ? 'Current Plan' 
               : processingPlan === plan.priceId 
                 ? 'Processing Payment...' 
-                : 'Upgrade Now'
+                : isLogged ? 'Upgrade Now' : 'Get Started'
             }
           </button>
         </div>
