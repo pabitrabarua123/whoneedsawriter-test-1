@@ -34,6 +34,7 @@ const getBlogData = async (slug: string) => {
       title: article.title,
       description: article.description,
       date: article.date,
+      updatedAt: article.updatedAt,
       ogImage: {
         url: article.ogImageUrl || '/default-og-image.jpg'
       }
@@ -73,8 +74,43 @@ const BlogPage = async ({ params }: Props) => {
   const slug = params.slug;
   const { readTime, frontMatter, content } = await getBlogData(slug);
 
+  // Format dates for schema
+  const datePublished = frontMatter.date ? new Date(frontMatter.date).toISOString().split('T')[0] : '';
+  const dateModified = frontMatter.updatedAt 
+    ? new Date(frontMatter.updatedAt).toISOString().split('T')[0] 
+    : datePublished;
+
+  // Get absolute image URL
+  const imageUrl = frontMatter.ogImage.url.startsWith('http') 
+    ? frontMatter.ogImage.url 
+    : `${websiteUrl}${frontMatter.ogImage.url}`;
+
+  // Create JSON-LD schema
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": frontMatter.title,
+    "url": `${websiteUrl}/blog/${slug}`,
+    "datePublished": datePublished,
+    "dateModified": dateModified,
+    "author": {
+      "@type": "Person",
+      "name": "whoneedsawriter"
+    },
+    "image": {
+      "@type": "ImageObject",
+      "url": imageUrl,
+      "width": 1200,
+      "height": 630
+    }
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
       <Article
         readingTime={readTime}
         title={frontMatter.title}
