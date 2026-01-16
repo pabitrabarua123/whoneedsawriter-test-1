@@ -6,6 +6,11 @@ interface Props {
 }
 
 const ArticleContent = ({ content }: Props) => {
+  // Remove the first h1 tag from content since title is already displayed above
+  const processedContent = typeof content === 'string' 
+    ? content.replace(/<h1[^>]*>.*?<\/h1>/i, '').trim()
+    : content;
+
   return (
     <Container maxW="container.md">
       <Flex flexDir="column">
@@ -25,6 +30,34 @@ const ArticleContent = ({ content }: Props) => {
               lineHeight: "32px",
               fontWeight: 700,
               mt: "64px",
+              mb: "16px",
+            },
+            h3: {
+              fontSize: "22px",
+              lineHeight: "28px",
+              fontWeight: 700,
+              mt: "48px",
+              mb: "16px",
+            },
+            h4: {
+              fontSize: "20px",
+              lineHeight: "26px",
+              fontWeight: 700,
+              mt: "32px",
+              mb: "16px",
+            },
+            h5: {
+              fontSize: "18px",
+              lineHeight: "24px",
+              fontWeight: 700,
+              mt: "24px",
+              mb: "16px",
+            },
+            h6: {
+              fontSize: "16px",
+              lineHeight: "22px",
+              fontWeight: 700,
+              mt: "16px",
               mb: "16px",
             },
             "ul, ol": {
@@ -105,12 +138,12 @@ const ArticleContent = ({ content }: Props) => {
               },
               td: {
                 borderWidth: "1px",
-                padding: "0 7px",
+                padding: "0 10px",
                 verticalAlign: "top",
               },
             },
           }}
-          dangerouslySetInnerHTML={{ __html: content as string }}
+          dangerouslySetInnerHTML={{ __html: processedContent as string }}
         >
         </Box>
       </Flex>

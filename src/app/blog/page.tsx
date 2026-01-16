@@ -4,26 +4,7 @@ import ArticlePreview from "@/components/Blog/ArticlePreview/ArticlePreview";
 import { Header } from "@/components/Header/Header";
 import { ArticleType } from "./blog.types";
 import { Pagination } from "@/components/Blog/Pagination/Pagination";
-
-interface BlogPost {
-  title: string;
-  description: string;
-  date: string;
-  slug: string;
-  ogImageUrl?: string;
-}
-
-interface PaginationInfo {
-  currentPage: number;
-  totalPages: number;
-  totalPosts: number;
-  postsPerPage: number;
-}
-
-interface BlogResponse {
-  posts: BlogPost[];
-  pagination: PaginationInfo;
-}
+import { getAllBlogPosts } from "@/libs/microcms";
 
 async function Blog({
   searchParams,
@@ -32,19 +13,8 @@ async function Blog({
 }) {
   const page = typeof searchParams.page === 'string' ? parseInt(searchParams.page) : 1;
   
-  // Use absolute URL for server-side fetching
-  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-    
-  const response = await fetch(`${baseUrl}/api/admin/blog-posts?page=${page}&limit=10`, {
-    cache: 'no-store'
-  });
-  
-  if (!response.ok) {
-    throw new Error('Failed to fetch blog posts');
-  }
-
-  const data: BlogResponse = await response.json();
-  const { posts: articles, pagination } = data;
+  // Fetch blog posts from MicroCMS
+  const { posts: articles, pagination } = await getAllBlogPosts(page, 10);
 
   // Transform blog posts to match ArticleType interface
   const transformedArticles: ArticleType[] = articles.map(article => ({

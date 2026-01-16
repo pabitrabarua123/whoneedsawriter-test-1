@@ -13,18 +13,9 @@ import { getOpenGraph } from "@/components/OpenGraph/OpenGraph";
 import { getSEOTags } from "@/components/SEOTags/SEOTags";
 
 const getBlogData = async (slug: string) => {
-  // Get the blog post from database
-  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-    
-  const response = await fetch(`${baseUrl}/api/admin/blog-posts/${slug}`, {
-    cache: 'no-store'
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch blog post');
-  }
-
-  const article = await response.json();
+  // Get the blog post from MicroCMS
+  const { getBlogPostBySlug } = await import('@/libs/microcms');
+  const article = await getBlogPostBySlug(slug);
   const content = article.content;
   const readTime = readingTime(content);
 
