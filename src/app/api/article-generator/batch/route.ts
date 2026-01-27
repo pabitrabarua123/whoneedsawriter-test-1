@@ -22,7 +22,22 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ batch });
+    // Enrich each batch with model from its articles
+    const batchesWithModel = await Promise.all(
+      batch.map(async (b) => {
+        const firstArticle = await prismaClient.godmodeArticles.findFirst({
+          where: { batchId: b.id },
+          select: { model: true },
+          orderBy: { createdAt: 'asc' }
+        });
+        return {
+          ...b,
+          model: firstArticle?.model || null
+        };
+      })
+    );
+
+    return NextResponse.json({ batch: batchesWithModel });
   } catch (error) {
     console.error("Error fetching articles:", error);
     return NextResponse.json(

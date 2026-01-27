@@ -87,6 +87,7 @@ type BatchData = {
   failed_articles: number;
   status: number;
   articleType: string;
+  model: string | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -128,15 +129,20 @@ const Batch: React.FC = () => {
       id: "articleType",
       header: "Article Type",
       cell: ({ row }: { row: Row<BatchData> }) => {
-        const formatArticleType = (type: string) => {
+        // Use model if available, otherwise fallback to articleType
+        const displayValue = row.original.model || row.original.articleType;
+        
+        const formatArticleType = (type: string | null) => {
+          if (!type) return 'N/A';
           if (type === 'godmode') return 'God Mode';
           if (type === 'liteMode') return 'Lite Mode';
-          return type || 'N/A';
+          // Return model values as-is (e.g., "a1-pro", "1a-core")
+          return type;
         };
         
         return (
           <div className="capitalize">
-            {formatArticleType(row.original.articleType)}
+            {formatArticleType(displayValue)}
           </div>
         );
       },
