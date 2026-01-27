@@ -1145,6 +1145,12 @@ seo content writing tips`}
          <div className="flex flex-wrap gap-3">
            <button
              type="button"
+             onClick={() =>
+              window.open(
+                '/blog/what-is-an-ai-blog-post-generator-2025-explainer',
+                '_blank'
+              )
+            }
              className="w-fit flex items-center gap-2 px-3 py-2 rounded-full border bg-[#1b2232] border-[#ffffff14] hover-gradient"
              style={{ transition: 'background .2s ease, box-shadow .2s ease, border-color .2s ease' }}
            >
@@ -1162,6 +1168,12 @@ seo content writing tips`}
 
            <button
              type="button"
+             onClick={() =>
+              window.open(
+                '/blog/how-ai-written-work-is-detected-a-2025-lab-guide',
+                '_blank'
+              )
+            }
              className="w-fit flex items-center gap-2 px-4 py-2 rounded-full border bg-[#1b2232] border-[#ffffff14] hover-gradient"
              style={{ transition: 'background .2s ease, box-shadow .2s ease, border-color .2s ease' }}
            >
@@ -1177,6 +1189,12 @@ seo content writing tips`}
 
            <button
              type="button"
+             onClick={() =>
+              window.open(
+                '/blog/top-5-benefits-of-ai-writing-tools-in-2025-with-real-roi',
+                '_blank'
+              )
+            }
              className="w-fit flex items-center gap-2 px-4 py-2 rounded-full border bg-[#1b2232] border-[#ffffff14] hover-gradient"
              style={{ transition: 'background .2s ease, box-shadow .2s ease, border-color .2s ease' }}
            >
@@ -1194,6 +1212,12 @@ seo content writing tips`}
 
            <button
              type="button"
+             onClick={() =>
+              window.open(
+                '/blog/how-to-write-high-quality-blog-posts-using-ai-in-2025',
+                '_blank'
+              )
+            }
              className="w-fit flex items-center gap-2 px-4 py-2 rounded-full border bg-[#1b2232] border-[#ffffff14] hover-gradient"
              style={{ transition: 'background .2s ease, box-shadow .2s ease, border-color .2s ease' }}
            >
@@ -1211,6 +1235,12 @@ seo content writing tips`}
 
            <button
              type="button"
+             onClick={() =>
+              window.open(
+                '/blog/ai-vs-human-articles-2025-blind-test-seo-showdown',
+                '_blank'
+              )
+            }
              className="w-fit flex items-center gap-2 px-4 py-2 rounded-full border bg-[#1b2232] border-[#ffffff14] hover-gradient"
              style={{ transition: 'background .2s ease, box-shadow .2s ease, border-color .2s ease' }}
            >
@@ -1225,6 +1255,12 @@ seo content writing tips`}
 
            <button
              type="button"
+             onClick={() =>
+              window.open(
+                '/blog/zerogpt-plus-review-2025-honest-ai-detector-test-verdict',
+                '_blank'
+              )
+            }
              className="w-fit flex items-center gap-2 px-4 py-2 rounded-full border bg-[#1b2232] border-[#ffffff14] hover-gradient"
              style={{ transition: 'background .2s ease, box-shadow .2s ease, border-color .2s ease' }}
            >
