@@ -136,12 +136,20 @@ const Batch: React.FC = () => {
           if (!type) return 'N/A';
           if (type === 'godmode') return 'God Mode';
           if (type === 'liteMode') return 'Lite Mode';
-          // Return model values as-is (e.g., "a1-pro", "1a-core")
-          return type;
+          
+          // Format model values: replace hyphens with spaces and capitalize words
+          // e.g., "1a-lite" → "1a Lite", "a1-pro" → "a1 Pro"
+          return type
+            .split('-')
+            .map((word, index) => {
+              // Capitalize first letter of each word, keep rest lowercase
+              return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+            })
+            .join(' ');
         };
         
         return (
-          <div className="capitalize">
+          <div>
             {formatArticleType(displayValue)}
           </div>
         );
