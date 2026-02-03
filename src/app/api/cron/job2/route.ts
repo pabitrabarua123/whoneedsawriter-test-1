@@ -49,6 +49,7 @@ export async function GET() {
       console.log(`Batch ${batch.id}: All ${godmodeArticlesForBatch.length} articles have content. Completing batch.`);
       
       await prismaClient.$transaction(async (tx) => {
+        console.log(`Batch ${batch.id}: Starting transaction`);
         // Update batch status
         await tx.batch.update({
           where: { id: batch.id },
@@ -60,7 +61,7 @@ export async function GET() {
             updatedAt: now,
           },
         });
-
+        console.log(`Batch ${batch.id}: Batch updated`);
         // Update godmode articles status to 1 (completed)
         // Instead of using individual article IDs, update by batchId
         await tx.godmodeArticles.updateMany({
@@ -71,11 +72,13 @@ export async function GET() {
           },
           data: { status: 1 },
         });
-
+        console.log(`Batch ${batch.id}: Godmode articles updated`);
+console.log(`Batch ${batch.id}: Deleting all pending articles for this batch`);
         // Delete all pending articles for this batch
         await tx.pendingGodmodeArticles.deleteMany({
           where: { batchId: batch.id },
         });
+        console.log(`Batch ${batch.id}: Pending articles deleted`);
       });
 
       // Send email for completion
