@@ -1,7 +1,6 @@
 import { prismaClient } from "@/prisma/db";
 import { NextResponse } from 'next/server';
 import { sendTransactionalEmail } from "@/libs/loops";
-import { PendingGodmodeArticles } from "@prisma/client";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -10,85 +9,141 @@ export async function GET() {
   console.log("🕑 Vercel cron job ran!");
   const now = new Date();
 
-  // Check all batches with status = 0, startProcess = 1, and articleType = 'godmode'
-  const candidateBatches = await prismaClient.batch.findMany({
+  // Find godmode articles directly with status = 0 and has content
+  const readyArticles = await prismaClient.godmodeArticles.findMany({
     where: {
-      articleType: 'godmode',
       status: 0,
-      startProcess: 1
+      content: { not: null },
+      articleType: 'godmode'
+    },
+    select: {
+      id: true,
+      batchId: true,
+      userId: true,
+      content: true
     },
     orderBy: {
       updatedAt: 'asc'
     }
   });
 
-  console.log(`Found ${candidateBatches.length} batches to process`);
+  console.log(`Found ${readyArticles.length} godmode articles with content ready to process`);
 
-  for (const batch of candidateBatches) {
-    console.log(`Processing batch ${batch.id} (${batch.name})`);
+  if (readyArticles.length === 0) {
+    return NextResponse.json({ ok: true, message: "No articles to process" });
+  }
 
-    const user = await prismaClient.user.findUnique({ where: { id: batch.userId } });
-    if (!user || !user.email) {
-      console.error(`User ID ${batch.userId} not found or has no email for batch ${batch.id}. Skipping batch.`);
+  // Group articles by batchId for batch-level operations
+  type ArticleType = { id: string; batchId: string; userId: string; content: string | null };
+  const articlesByBatch = new Map<string, ArticleType[]>();
+  for (const article of readyArticles) {
+    if (!articlesByBatch.has(article.batchId)) {
+      articlesByBatch.set(article.batchId, []);
+    }
+    articlesByBatch.get(article.batchId)!.push(article);
+  }
+
+  // Process each batch
+  for (const [batchId, articles] of Array.from(articlesByBatch.entries())) {
+    console.log(`Processing batch ${batchId} with ${articles.length} ready articles`);
+
+    // Get batch information
+    const batch = await prismaClient.batch.findUnique({
+      where: { id: batchId }
+    });
+
+    if (!batch) {
+      console.error(`Batch ${batchId} not found. Skipping.`);
       continue;
     }
 
-    // Get all godmode articles for this batch
-    const godmodeArticlesForBatch = await prismaClient.godmodeArticles.findMany({
-      where: { 
-        batchId: batch.id
-      },
-      select: { content: true, id: true },
+    // Get user information
+    const user = await prismaClient.user.findUnique({ 
+      where: { id: articles[0].userId } 
     });
 
-    // Check if all articles have content
-    const allArticlesHaveContent = godmodeArticlesForBatch.length > 0 && 
-      godmodeArticlesForBatch.every(article => !!article.content);
+    if (!user || !user.email) {
+      console.error(`User ID ${articles[0].userId} not found or has no email for batch ${batchId}. Skipping batch.`);
+      continue;
+    }
 
-    if (allArticlesHaveContent) {
-      console.log(`Batch ${batch.id}: All ${godmodeArticlesForBatch.length} articles have content. Completing batch.`);
+    // Update articles status to 1 (completed)
+    await prismaClient.$transaction(async (tx) => {
+      console.log(`Batch ${batchId}: Starting transaction to update ${articles.length} articles`);
       
-      await prismaClient.$transaction(async (tx) => {
-        console.log(`Batch ${batch.id}: Starting transaction`);
-        // Update batch status
+      // Update godmode articles status to 1
+      await tx.godmodeArticles.updateMany({
+        where: {
+          id: { in: articles.map((a: ArticleType) => a.id) },
+          status: 0,
+          content: { not: null }
+        },
+        data: { status: 1 },
+      });
+      console.log(`Batch ${batchId}: Updated ${articles.length} articles to status 1`);
+
+      // Delete pending articles for these completed articles
+      await tx.pendingGodmodeArticles.deleteMany({
+        where: {
+          batchId: batchId,
+          godmodeArticleId: { in: articles.map((a: ArticleType) => a.id) }
+        },
+      });
+      console.log(`Batch ${batchId}: Deleted pending articles`);
+
+      // Check if all articles in the batch are now completed
+      const totalArticlesInBatch = await tx.godmodeArticles.count({
+        where: { batchId: batchId }
+      });
+
+      const completedArticlesInBatch = await tx.godmodeArticles.count({
+        where: {
+          batchId: batchId,
+          status: 1
+        }
+      });
+
+      // If all articles in batch are completed, update batch status
+      if (completedArticlesInBatch === totalArticlesInBatch && batch.status === 0) {
         await tx.batch.update({
-          where: { id: batch.id },
+          where: { id: batchId },
           data: {
             status: 1,
-            completed_articles: batch.articles,
+            completed_articles: totalArticlesInBatch,
             pending_articles: 0,
             failed_articles: 0,
             updatedAt: now,
           },
         });
-        console.log(`Batch ${batch.id}: Batch updated`);
-        // Update godmode articles status to 1 (completed)
-        // Instead of using individual article IDs, update by batchId
-        await tx.godmodeArticles.updateMany({
-          where: { 
-            batchId: batch.id,
-            content: { not: null }, // Only update articles that have content
-            status: { not: 1 }      // Only update articles not already completed
+        console.log(`Batch ${batchId}: All articles completed. Batch status updated to 1`);
+      } else {
+        // Update batch with new completed count
+        await tx.batch.update({
+          where: { id: batchId },
+          data: {
+            completed_articles: completedArticlesInBatch,
+            pending_articles: totalArticlesInBatch - completedArticlesInBatch,
+            updatedAt: now,
           },
-          data: { status: 1 },
         });
-        console.log(`Batch ${batch.id}: Godmode articles updated`);
-console.log(`Batch ${batch.id}: Deleting all pending articles for this batch`);
-        // Delete all pending articles for this batch
-        await tx.pendingGodmodeArticles.deleteMany({
-          where: { batchId: batch.id },
-        });
-        console.log(`Batch ${batch.id}: Pending articles deleted`);
-      });
+        console.log(`Batch ${batchId}: Updated batch counts - Completed: ${completedArticlesInBatch}, Total: ${totalArticlesInBatch}`);
+      }
+    });
 
-      // Send email for completion
-      if (user.email) {
-        try {
+    // Send email notification
+    if (user.email) {
+      try {
+        // Get updated batch info for email
+        const updatedBatch = await prismaClient.batch.findUnique({
+          where: { id: batchId }
+        });
+
+        if (updatedBatch) {
           await sendTransactionalEmail({
             transactionalId: "cmb2jl0ijc6ea430in4xiowyv",
             email: user.email,
             dataVariables: {
-              text1: `Here is the status of godemode articles in batch ${batch.name}`,
+              text1: `Here is the status of godmode articles in batch ${batch.name}`,
               text2: `<table border="1" cellspacing="0" cellpadding="8" style="margin: 0 auto;">
               <thead>
                <tr>
@@ -100,28 +155,26 @@ console.log(`Batch ${batch.id}: Deleting all pending articles for this batch`);
               </thead>
               <tbody>
                <tr>
-                <td>${batch.articles}</td>
-                <td>${batch.articles}</td>
-                <td>0</td>
-                <td>0</td>
+                <td>${updatedBatch.articles}</td>
+                <td>${updatedBatch.completed_articles}</td>
+                <td>${updatedBatch.pending_articles}</td>
+                <td>${updatedBatch.failed_articles}</td>
                </tr>
               </tbody>
               </table>`,
-              subject: `Articles generated in ${batch.name} are now completed`,
-              batch: batch.id
+              subject: updatedBatch.status === 1 
+                ? `Articles generated in ${batch.name} are now completed`
+                : `Articles generated in ${batch.name} - Progress Update`,
+              batch: batchId
             },
           });
-          console.log(`Successfully sent completion email to ${user.email} for batch ${batch.id}`);
-        } catch (error) {
-          console.error(`Failed to send completion email to ${user.email} for batch ${batch.id}:`, error);
+          console.log(`Successfully sent email to ${user.email} for batch ${batchId}`);
         }
+      } catch (error) {
+        console.error(`Failed to send email to ${user.email} for batch ${batchId}:`, error);
       }
-    } else {
-      // Some articles don't have content yet
-      const articlesWithContent = godmodeArticlesForBatch.filter(article => !!article.content);
-      console.log(`Batch ${batch.id}: ${articlesWithContent.length}/${godmodeArticlesForBatch.length} articles have content. Waiting for all articles to be ready.`);
     }
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, processed: readyArticles.length });
 } 
