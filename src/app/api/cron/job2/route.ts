@@ -67,8 +67,6 @@ export async function GET() {
         await tx.godmodeArticles.updateMany({
           where: { 
             batchId: batch.id,
-            content: { not: null }, // Only update articles that have content
-            status: { not: 1 }      // Only update articles not already completed
           },
           data: { status: 1 },
         });
