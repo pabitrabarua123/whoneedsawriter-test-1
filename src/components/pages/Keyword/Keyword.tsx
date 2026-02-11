@@ -66,6 +66,7 @@ const Keyword = ({id}: {id: string}) => {
   const { isOpen: isCategoryAuthorSelectOpen, onOpen: onCategoryAuthorSelectOpen, onClose: onCategoryAuthorSelectClose } = useDisclosure();
   const { isOpen: isSetupOpen, onOpen: onSetupOpen, onClose: onSetupClose } = useDisclosure();
   const { isOpen: isPublishingSettingsOpen, onOpen: onPublishingSettingsOpen, onClose: onPublishingSettingsClose } = useDisclosure();
+  const { isOpen: isUpdatePluginOpen, onOpen: onUpdatePluginOpen, onClose: onUpdatePluginClose } = useDisclosure();
 
   const [initialHTML, setInitialHTML] = useState('');
   const [hasContent, setHasContent] = useState(false);
@@ -319,7 +320,7 @@ const Keyword = ({id}: {id: string}) => {
 
   // Publishing settings state
   const [publishingSettings, setPublishingSettings] = useState({
-    saveOption: 'draft', // 'draft' or 'live'
+    saveOption: 'draft', // 'draft' or 'publish'
     addFeaturedImage: true,
     addMetaContent: true
   });
@@ -1018,15 +1019,15 @@ const Keyword = ({id}: {id: string}) => {
                     size="md"
                     colorScheme="blue"
                   >
-                    Save to Draft
+                    Save as Draft
                   </Checkbox>
                   <Checkbox
-                    isChecked={publishingSettings.saveOption === 'live'}
-                    onChange={() => setPublishingSettings(prev => ({ ...prev, saveOption: 'live' }))}
+                    isChecked={publishingSettings.saveOption === 'publish'}
+                    onChange={() => setPublishingSettings(prev => ({ ...prev, saveOption: 'publish' }))}
                     size="md"
                     colorScheme="blue"
                   >
-                    Publish Live
+                    Publish Now
                   </Checkbox>
                 </VStack>
               </VStack>
@@ -1099,7 +1100,15 @@ const Keyword = ({id}: {id: string}) => {
               {publishStatus === 'error' && (
                 <Flex align="center" gap={2} color="red.500">
                   <Icon as={MdError} boxSize={5} />
+                  { publishMessage === 'Plugin version is outdated' ?
+                  <Text fontSize="sm" fontWeight="medium">{publishMessage}. <span className="text-blue-500 cursor-pointer" onClick={() => {
+                    onUpdatePluginOpen();
+                    onPublishingSettingsClose();
+                  }}>Click here</span> to update the plugin.</Text>
+                  : 
                   <Text fontSize="sm" fontWeight="medium">{publishMessage}</Text>
+                  }
+                  
                 </Flex>
               )}
             </VStack>
@@ -1107,6 +1116,29 @@ const Keyword = ({id}: {id: string}) => {
         </ModalContent>
       </Modal>
 
+      {/* Update Plugin Modal */}
+      <Modal isOpen={isUpdatePluginOpen} onClose={onUpdatePluginClose} size="lg">
+        <ModalOverlay />
+        <ModalContent bg={colorMode === 'dark' ? '#060d36' : '#fff'}>
+          <ModalHeader>Update Plugin</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            {/* List here*/}
+            <ul className="list-disc list-inside">
+              <li className="mb-4">Download the plugin from the link below</li>
+              <li className="mb-4">Deactivate and delete the existing plugin on your wordpress website</li>
+              <li className="mb-4">Install and activate the new plugin on the website</li>
+              <li className="mb-4">Verify the plugin is installed and activated at whoneedsawriter.com</li>
+            </ul>
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="blue" onClick={() => {
+              window.open('https://firebasestorage.googleapis.com/v0/b/virtualnod-storage.firebasestorage.app/o/whoneedsawriter%2Fplugin%2FWhoneedsawriter.zip?alt=media&token=1eb99f55-88d9-4614-9849-e2b80187a744', '_blank');
+            }}>Download Plugin</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+              
       {/* Modal for mobile view */}
       <Modal isOpen={isOpen} onClose={onClose} size="full">
         <ModalOverlay />

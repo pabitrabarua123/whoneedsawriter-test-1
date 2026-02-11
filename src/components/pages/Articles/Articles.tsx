@@ -24,6 +24,7 @@ import {
   RadioGroup,
   Tooltip,
   useColorMode,
+  Select,
 } from "@chakra-ui/react";
 import {
   TbArrowBack,
@@ -119,6 +120,7 @@ const ArticlesList: React.FC = () => {
   const { isOpen: isWebsiteSelectOpen, onOpen: onWebsiteSelectOpen, onClose: onWebsiteSelectClose } = useDisclosure();
   const { isOpen: isSetupOpen, onOpen: onSetupOpen, onClose: onSetupClose } = useDisclosure();
   const { isOpen: isPublishingSettingsOpen, onOpen: onPublishingSettingsOpen, onClose: onPublishingSettingsClose } = useDisclosure();
+  const { isOpen: isUpdatePluginOpen, onOpen: onUpdatePluginOpen, onClose: onUpdatePluginClose } = useDisclosure();
 
   // Website and publishing states
   const [userWebsites, setUserWebsites] = useState<UserWebsite[]>([]);
@@ -127,13 +129,15 @@ const ArticlesList: React.FC = () => {
   const [publishingSettings, setPublishingSettings] = useState({
     saveOption: 'draft',
     addFeaturedImage: true,
-    addMetaContent: true
+    addMetaContent: true,
+    scheduleTime: null as string | null
   });
 
   // Add selected website state for single selection
   const [selectedWebsiteId, setSelectedWebsiteId] = useState<string>('');
 
   // Add publishing progress state
+  const [publishingFailedMessage, setPublishingFailedMessage] = useState<string>('');
   const [publishingProgress, setPublishingProgress] = useState<{
     current: number;
     total: number;
@@ -430,6 +434,7 @@ const ArticlesList: React.FC = () => {
   const handlePublish = async () => {
     try {
       setIsPublishing(true);
+      setPublishingFailedMessage('');
       
       // Get selected WordPress site
       const selectedWebsite = userWebsites.find(site => site.id.toString() === selectedWebsiteId);
@@ -483,6 +488,11 @@ const ArticlesList: React.FC = () => {
         // Fallback: if h1 exists without immediate image, just remove h1
         processedContent = processedContent.replace(/<h1[^>]*>(.*?)<\/h1>/, '');
 
+        let scheduleTime = '';
+        if (publishingSettings.saveOption === 'future') {
+          scheduleTime = publishingSettings.scheduleTime === 'one_post_per_day' ? '+' + i*24 + ' hours' : '+' + i*7 + ' days';
+        }
+
         const response = await fetch('/api/publish-to-wordpress', {
           method: 'POST',
           headers: {
@@ -497,11 +507,15 @@ const ArticlesList: React.FC = () => {
             category: articleCategories[article.id] || 'Uncategorized',
             author: selectedAuthor || 1,
             saveOption: publishingSettings.saveOption,
+            scheduleTime: scheduleTime,
             metaTitle: article.metaTitle || '',
             metaDescription: article.metaDescription || '',
             addMetaContent: publishingSettings.addMetaContent
           }),
         });
+
+        const data = await response.json();
+        setPublishingFailedMessage(data.message);
 
         if (response.ok) {
           // Update completed articles
@@ -1052,6 +1066,30 @@ const ArticlesList: React.FC = () => {
           </ModalContent>
       </Modal>
 
+      {/* Update Plugin Modal */}
+      <Modal isOpen={isUpdatePluginOpen} onClose={onUpdatePluginClose} size="lg">
+        <ModalOverlay />
+        <ModalContent bg={colorMode === 'dark' ? '#060d36' : '#fff'}>
+          <ModalHeader>Update Plugin</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            {/* List here*/}
+            <ul className="list-disc list-inside">
+              <li className="mb-4">Download the plugin from the link below</li>
+              <li className="mb-4">Deactivate and delete the existing plugin on your wordpress website</li>
+              <li className="mb-4">Install and activate the new plugin on the website</li>
+              <li className="mb-4">Verify the plugin is installed and activated at whoneedsawriter.com</li>
+            </ul>
+            <br/>
+            <Flex justify="center">
+              <Button colorScheme="blue" onClick={() => {
+                window.open('https://firebasestorage.googleapis.com/v0/b/virtualnod-storage.firebasestorage.app/o/whoneedsawriter%2Fplugin%2FWhoneedsawriter.zip?alt=media&token=1eb99f55-88d9-4614-9849-e2b80187a744', '_blank');
+              }}>Download Plugin</Button>
+            </Flex>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+
       {/* Publishing Settings Modal */}
       <Modal isOpen={isPublishingSettingsOpen} onClose={handlePublishingSettingsClose} size="lg">
         <ModalOverlay />
@@ -1072,17 +1110,38 @@ const ArticlesList: React.FC = () => {
                     size="md"
                     colorScheme="blue"
                   >
-                    Save to Draft
+                    Save as Draft
                   </Checkbox>
                   <Checkbox
-                    isChecked={publishingSettings.saveOption === 'live'}
-                    onChange={() => setPublishingSettings(prev => ({ ...prev, saveOption: 'live' }))}
+                    isChecked={publishingSettings.saveOption === 'publish'}
+                    onChange={() => setPublishingSettings(prev => ({ ...prev, saveOption: 'publish' }))}
                     size="md"
                     colorScheme="blue"
                   >
-                    Publish Live
+                    Publish Now
+                  </Checkbox>
+                  <Checkbox
+                    isChecked={publishingSettings.saveOption === 'future'}
+                    onChange={() => setPublishingSettings(prev => ({ ...prev, saveOption: 'future' }))}
+                    size="md"
+                    colorScheme="blue"
+                  >
+                    Schedule for Future
                   </Checkbox>
                 </VStack>
+                {publishingSettings.saveOption === 'future' && (
+                  <Box>
+                    <Select
+                      value={publishingSettings.scheduleTime || ''}
+                      onChange={(e) => setPublishingSettings(prev => ({ ...prev, scheduleTime: e.target.value }))}
+                      size="md"
+                      colorScheme="blue"
+                    >
+                      <option value="one_post_per_day">One post daily</option>
+                      <option value="one_post_weekly">One post weekly</option>
+                    </Select>
+                    </Box>
+                )}
               </VStack>
 
               {/* Divider */}
@@ -1197,7 +1256,7 @@ const ArticlesList: React.FC = () => {
                   {publishingProgress.failed.length > 0 && (
                     <Box>
                       <Text fontSize="sm" color="red.600" fontWeight="medium" mb={2}>
-                        ❌ Could not publish featured image. ({publishingProgress.failed.length}):
+                        ❌ Could not publish articles. ({publishingProgress.failed.length}):
                       </Text>
                       <VStack align="stretch" spacing={1}>
                         {publishingProgress.failed.map((article, index) => (
@@ -1208,6 +1267,19 @@ const ArticlesList: React.FC = () => {
                       </VStack>
                     </Box>
                   )}
+
+                  {/* error message*/}
+                  {publishingFailedMessage && publishingFailedMessage === 'Plugin version is outdated' && (
+                    <Box>
+                      <Text fontSize="sm" color="red.800" bg="white" p={2} borderRadius="lg" fontWeight="medium" mb={2}>
+                         {publishingFailedMessage}. <span className="text-underline cursor-pointer" onClick={() => {
+                          onUpdatePluginOpen();
+                          handlePublishingSettingsClose();
+                         }}>Click here</span> to update the plugin.
+                      </Text>
+                    </Box>
+                  )}
+
                 </VStack>
               )}
             </VStack>

@@ -273,6 +273,12 @@ model keywords {
   createdAt      DateTime  @default(now())
 }
 
+model Plugin {
+  id             String    @id @default(cuid())
+  version        String?
+  createdAt      DateTime  @default(now())
+}
+
 enum WorkspaceRole {
   OWNER
   ADMIN
