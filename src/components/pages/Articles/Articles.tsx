@@ -130,7 +130,7 @@ const ArticlesList: React.FC = () => {
     saveOption: 'draft',
     addFeaturedImage: true,
     addMetaContent: true,
-    scheduleTime: null as string | null
+    scheduleTime: 'one_post_per_day',
   });
 
   // Add selected website state for single selection
@@ -492,7 +492,7 @@ const ArticlesList: React.FC = () => {
         if (publishingSettings.saveOption === 'future') {
           scheduleTime = publishingSettings.scheduleTime === 'one_post_per_day' ? '+' + i*24 + ' hours' : '+' + i*7 + ' days';
         }
-
+        
         const response = await fetch('/api/publish-to-wordpress', {
           method: 'POST',
           headers: {
