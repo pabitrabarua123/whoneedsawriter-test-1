@@ -265,11 +265,14 @@ model userWebsite {
 
 model keywords {
   id             String    @id @default(cuid())
+  userId         String
   website_url    String?
   description    String?  
   seedKeyword    String?
   goal           String?
   json           String?
+  userEmail      String?
+  emailSent      Boolean   @default(false)
   createdAt      DateTime  @default(now())
 }
 

@@ -60,6 +60,11 @@ const ApiKeysComponent = dynamic(
   { loading: () => <Spinner color="brand.500" /> }
 );
 
+const KeywordResearchComponent = dynamic(
+  () => import("@/components/pages/KeywordResearch/KeywordResearch").then((mod) => mod.default),
+  { loading: () => <Spinner color="brand.500" /> }
+);
+
 type WebAppPageProps = {
   currentPage: Routes;
 };
@@ -139,11 +144,16 @@ const WebAppPageContent = ({ currentPage }: WebAppPageProps) => {
                 <BatchComponent />
               </Center>
             )}
-            {currentPage === Routes.apiKeys && (
-              <Center w="100%" flexDir="column">
-                <ApiKeysComponent />
-              </Center>
-            )}  
+              {currentPage === Routes.apiKeys && (
+                <Center w="100%" flexDir="column">
+                  <ApiKeysComponent />
+                </Center>
+              )}  
+              {currentPage === Routes.keywordresearch && (
+                <Center w="100%" flexDir="column">
+                  <KeywordResearchComponent />
+                </Center>
+              )}
           </Flex>
           <PricingPopup isOpen={isPricingPopupOpen} onClose={onPricingPopupClose} />
         </>
