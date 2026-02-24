@@ -13,6 +13,7 @@ export async function POST(req: NextRequest) {
     }
 
     const userId = session.user.id as string;
+    const userEmail = session.user.email as string;
     const body = await req.json();
 
     // Extract data from request body
@@ -55,6 +56,8 @@ export async function POST(req: NextRequest) {
       params.append("topic", topic || "");
       params.append("description", description);
       params.append("goal", goal);
+      params.append("user_id", userId);
+      params.append("user_email", userEmail);
 
       // Must await on Vercel: serverless functions terminate after response;
       // fire-and-forget would often never complete in production.
