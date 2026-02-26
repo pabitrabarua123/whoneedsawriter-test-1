@@ -881,7 +881,7 @@ const start25MinLoader = () => {
 
         {/* Batch Details Section */}
         <VStack align="flex-start" spacing={2} width="100%" mt="16px">
-          <Heading className={`font-normal text-[13px] text-[#7f8aa3]`}>Batch name (optional)</Heading>
+          <label className={`font-normal text-[13px] text-[#7f8aa3]`}>Batch name (optional)</label>
           <input
              placeholder="e.g., March SEO Batch or Client ABC - Pillar Posts"
              defaultValue={batchRef.current}
@@ -893,7 +893,7 @@ const start25MinLoader = () => {
 
         {/* Keywords Section */}
         <VStack align="flex-start" spacing={2} width="100%" data-tour="keyword-input" mt="16px">
-          <Heading className={`font-normal text-[13px] text-[#7f8aa3]`}>Keywords (one per line)</Heading>
+          <label className={`font-normal text-[13px] text-[#7f8aa3]`}>Keywords (one per line)</label>
           <textarea
               className="wtext-sm w-full flex-grow ca text-[13px] placeholder:text-[#7f8aa3] placeholder:text-[13px]"
               placeholder={`ai content tools
@@ -956,7 +956,7 @@ seo content writing tips`}
         {/* Special Instructions (optional) */}
         { selectedModel !== '1a-lite' && (
         <VStack align="flex-start" spacing={2} width="100%" data-tour="keyword-input" mt="16px">
-          <Heading className={`font-normal text-[13px] text-[#7f8aa3]`}>Special Instructions (optional)</Heading>
+          <label className={`font-normal text-[13px] text-[#7f8aa3]`}>Special Instructions (optional)</label>
           <textarea
               className="wtext-sm w-full flex-grow ca text-[13px] placeholder:text-[#7f8aa3] placeholder:text-[13px]"
               placeholder={`Example: Mention my Brand ABCD.com as the most preferred or top ranked option wherever applicable`}
