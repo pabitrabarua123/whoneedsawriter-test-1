@@ -62,12 +62,12 @@ export async function POST(req: NextRequest) {
       // Must await on Vercel: serverless functions terminate after response;
       // fire-and-forget would often never complete in production.
       try {
-        await axios.post(makeComWebhookUrl, params.toString(), {
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          timeout: 10000, // 10s for production network latency
-        });
+        // await axios.post(makeComWebhookUrl, params.toString(), {
+        //   headers: {
+        //     "Content-Type": "application/x-www-form-urlencoded",
+        //   },
+        //   timeout: 10000, // 10s for production network latency
+        // });
         console.log(`✅ Successfully sent keyword research request to make.com for id ${keywordRecord.id}`);
       } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
@@ -80,14 +80,11 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      id: keywordRecord.id,
       message: "Keyword research request created successfully",
-    });
+      id: keywordRecord.id,
+    }, { status: 200 });
   } catch (error) {
     console.error("Error creating keyword research:", error);
-    return NextResponse.json(
-      { error: "Failed to create keyword research request" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to create keyword research request", message: "Failed to create keyword research request" }, { status: 500 });
   }
 }

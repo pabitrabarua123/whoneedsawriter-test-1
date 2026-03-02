@@ -1,5 +1,6 @@
 import { VStack, Spinner, Flex } from "@chakra-ui/react";
 import { Heading } from "@chakra-ui/react";
+import { useRouter } from "next/navigation";
 
 type ResearchData = {
   websiteUrl: string;
@@ -14,30 +15,24 @@ const PROGRESS_MESSAGES = [
   "Finalizing topic ideas…",
 ];
 
-type ReportEmailProps = {
-  reportEmail?: string;
-  onReportEmailChange?: (email: string) => void;
-  reportEmailOptIn?: boolean;
-  onReportEmailOptInChange?: (checked: boolean) => void;
-};
-
 export const RenderFormStep: React.FC<{
   step: number;
   researchData: ResearchData;
   setResearchData: (data: ResearchData) => void;
   error: string | null;
   progress?: number;
-} & ReportEmailProps> = ({
+  isProcessing: boolean;
+  keywordResearchResult: number;
+} > = ({
   step,
   researchData,
   setResearchData,
   error,
   progress = 0,
-  reportEmail = "",
-  onReportEmailChange,
-  reportEmailOptIn = false,
-  onReportEmailOptInChange,
+  isProcessing,
+  keywordResearchResult,
 }) => {
+    const router = useRouter();
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setResearchData({ ...researchData, [e.target.name]: e.target.value });
     }
@@ -161,7 +156,6 @@ export const RenderFormStep: React.FC<{
     </div>
   </label>
 </div>
-
             </div>
           </div>
             </VStack>
@@ -215,6 +209,8 @@ export const RenderFormStep: React.FC<{
               <Heading className={`font-semibold text-lg text-[#7f8aa3] px-[22px]`}>Generating your keyword research…</Heading>
               <p className="text-[13px] text-[#7f8aa3] px-[22px]">Please keep this tab open. This usually takes 3–5 minutes.</p>
               <hr style={{ height: '1px', width: '100%' }} />
+              { isProcessing && (
+              <div>
               <div className="px-[22px] w-full space-y-3 mb-[20px] mt-[20px]">
                 <div className="w-full h-[5px] bg-[#1b2232] rounded-full overflow-hidden">
                   <div
@@ -229,38 +225,79 @@ export const RenderFormStep: React.FC<{
                   </p>
                 </Flex>
               </div>
-              {onReportEmailChange && onReportEmailOptInChange && (
+              
                 <div className="px-[22px] w-full mt-4">
                   <div className="border border-[#ffffff14] rounded-lg p-4">
-                    <label className="flex items-center gap-3 cursor-pointer mb-3">
-                      <input
-                        type="checkbox"
-                        checked={reportEmailOptIn}
-                        onChange={(e) => onReportEmailOptInChange(e.target.checked)}
-                        className="w-4 h-4 rounded border-[#7f8aa3] text-[#2c5282] focus:ring-[#2c5282]"
-                      />
-                      <span className="text-sm font-medium text-[#7f8aa3]">Want this report emailed to you?</span>
-                    </label>
-                    <p className="text-xs text-[#7f8aa3] mb-3 ml-7">Optional, but great if you want to come back later.</p>
-                    <div className="ml-7 flex items-center gap-2 w-calc(100%-120px)">
-                      <input
-                        type="email"
-                        placeholder="you@example.com"
-                        value={reportEmail}
-                        onChange={(e) => onReportEmailChange(e.target.value)}
-                        readOnly={!reportEmailOptIn}
-                        className="flex-1 min-w-0 text-[13px] placeholder:text-[#7f8aa3] bg-[#1b2232] border border-[#ffffff14] rounded-lg px-3 py-2 text-[#eef2f7] focus:outline-none focus:ring-2 focus:ring-[#2c5282] disabled:opacity-50 disabled:cursor-not-allowed h-10"
-                      />
+                    <p className="text-sm text-[#7f8aa3] mb-3 text-center">We will email you the report once completed , you can go to the dashboard </p>
+                    <div className="flex items-center justify-center gap-2 w-full mt-[20px]">
                       <button
                         type="button"
-                        disabled={!reportEmailOptIn}
-                        className="shrink-0 w-[120px] text-sm font-medium text-white bg-[#2c5282] px-4 h-10 rounded-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={() => {
+                          router.push('/dashboard');
+                        }}
+                        className="text-sm font-medium text-white bg-[#2c5282] px-4 h-10 rounded-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Send Report
+                        GO TO DASHBOARD
                       </button>
                     </div>
                   </div>
                 </div>
+              </div>
+              )}
+
+              { keywordResearchResult === 1 && (
+                                <div className="px-[22px] w-full mt-4">
+                                <div className="border border-[#ffffff14] rounded-lg p-4">
+                                  <p className="text-sm text-[#7f8aa3] mb-3 text-center">Keyword generation completed successfully</p>
+                                  <div className="flex items-center justify-center gap-2 w-full mt-[20px]">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        router.push('/dashboard');
+                                      }}
+                                      className="text-sm font-medium text-white bg-[#2c5282] px-4 h-10 rounded-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                      VIEW KEYWORD REPORT
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+              )}
+              { keywordResearchResult === 2 && (
+                                <div className="px-[22px] w-full mt-4">
+                                <div className="border border-[#ffffff14] rounded-lg p-4">
+                                  <p className="text-sm text-[#ff0000] mb-3 text-center">Keyword research is taking longer than expected, we will send you an update on email once completed.</p>
+                                  <div className="flex items-center justify-center gap-2 w-full mt-[20px]">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        router.push('/dashboard');
+                                      }}
+                                      className="text-sm font-medium text-white bg-[#2c5282] px-4 h-10 rounded-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                      GO TO DASHBOARD
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+              )}
+              { keywordResearchResult === 3 && (
+                                <div className="px-[22px] w-full mt-4">
+                                <div className="border border-[#ffffff14] rounded-lg p-4">
+                                  <p className="text-sm text-[#ff0000] mb-3 text-center">Keyword generation failed, please try again.</p>
+                                  <div className="flex items-center justify-center gap-2 w-full mt-[20px]">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        router.push('/dashboard');
+                                      }}
+                                      className="text-sm font-medium text-white bg-[#2c5282] px-4 h-10 rounded-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                      GO TO DASHBOARD
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
               )}
             </VStack>
             );

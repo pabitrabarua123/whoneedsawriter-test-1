@@ -221,13 +221,14 @@ export const SidebarMenuItems: React.FC<MenuProps> = ({
 
   // Prefetch routes on component mount
   useEffect(() => {
-    const routesToPrefetch = [
+        const routesToPrefetch = [
       Routes.dashboard,
       Routes.articlegenerator,
       Routes.batch,
       Routes.account,
       Routes.apiKeys,
       Routes.pricing,
+      Routes.generationHistory,
     ];
     
     routesToPrefetch.forEach(route => {
@@ -359,8 +360,8 @@ export const SidebarMenuItems: React.FC<MenuProps> = ({
             _hover={{ opacity: 0.8 }}
             p={isMobile ? "10px 12px" : "0"}
             borderRadius={isMobile ? "8px" : "0"}
-            bg={isMobile && currentPage === Routes.batch ? "#4da3ff1a" : "transparent"}
-            onClick={() => handleNavigation(Routes.batch)}
+            bg={isMobile && currentPage === Routes.generationHistory ? "#4da3ff1a" : "transparent"}
+            onClick={() => handleNavigation(Routes.generationHistory)}
           >
             <Flex
               w={isMobile ? "unset" : "44px"}

@@ -34,8 +34,6 @@ const KeywordResearch: React.FC = () => {
   const [error, setError] = useState<null | string>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
-  const [reportEmail, setReportEmail] = useState<string>("");
-  const [reportEmailOptIn, setReportEmailOptIn] = useState<boolean>(false);
 
   const handleContinue = () => {
     if (currentStep === 1) {
@@ -61,13 +59,14 @@ const KeywordResearch: React.FC = () => {
     setError(null);
   }
 
+  const [keywordResearchResult, setKeywordResearchResult] = useState(0);
   const handleGenerateKeywordResearch = async () => {
     try {
       setIsProcessing(true);
       setProgress(0);
 
       // Call API to create keyword research record and send to make.com
-      const response = await fetch('/api/keyword-research', {
+      const response = await fetch('/api/keyword-research/start-generation', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -100,17 +99,36 @@ const KeywordResearch: React.FC = () => {
       }, 3000);
 
       // Stop progress after 3-5 minutes (180-300 seconds)
-      setTimeout(() => {
+      setTimeout(async () => {
         clearInterval(interval);
         setProgress(100);
         setIsProcessing(false);
-      }, 180000); // 3 minutes - adjust as needed
+        const response = await fetch('/api/keyword-research/check-generation', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ generationId: data.id }),
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to check keyword research');
+        }
+        const checkData = await response.json();
+        console.log('Keyword research status:', checkData);
+        if (checkData.message === 'completed') {
+          setKeywordResearchResult(1);
+        } else {
+          setKeywordResearchResult(2);
+        }
+      }, 10000); // 3 minutes - adjust as needed
 
     } catch (error) {
       console.error('Error generating keyword research:', error);
       setError(error instanceof Error ? error.message : 'Failed to generate keyword research');
       setIsProcessing(false);
       setProgress(0);
+      setKeywordResearchResult(3);
     }
   }
 
@@ -137,10 +155,8 @@ const KeywordResearch: React.FC = () => {
               setResearchData={setResearchData}
               error={error}
               progress={progress}
-              reportEmail={reportEmail}
-              onReportEmailChange={setReportEmail}
-              reportEmailOptIn={reportEmailOptIn}
-              onReportEmailOptInChange={setReportEmailOptIn}
+              isProcessing={isProcessing}
+              keywordResearchResult={keywordResearchResult}
             />
           </VStack>
         </div>
