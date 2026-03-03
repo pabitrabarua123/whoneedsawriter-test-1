@@ -60,13 +60,14 @@ if(user && user?.monthyBalance > 0) {
     where: { id: userId },
     data: { freeCredits: (user?.freeCredits || 0) - 0.1 },
   });
-
-    return NextResponse.json({
-      success: true,
-      message: "Keyword research request created successfully",
-      id: keywordRecord.id,
-    }, { status: 200 });
   }
+  
+  return NextResponse.json({
+    success: true,
+    message: "Keyword research request created successfully",
+    id: keywordRecord.id,
+  }, { status: 200 });
+
 } catch (error) {
   console.error("Error creating keyword research:", error);
   return NextResponse.json({ error: "Failed to deduct balance" }, { status: 400 });
