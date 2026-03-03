@@ -180,12 +180,6 @@ const KeywordDetails: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
-  const handleGenerateArticles = () => {
-    const base = "/article-generator";
-    const q = topic ? `?topic=${encodeURIComponent(topic)}` : "";
-    router.push(`${base}${q}`);
-  };
-
   return (
     <Flex justifyContent="flex-start" w="100%" minH="100vh">
       <div className="flex-col w-full">
@@ -215,26 +209,26 @@ const KeywordDetails: React.FC = () => {
                 <Box>
                   <Text fontWeight="medium">
                     Topic:{" "}
-                    <Text as="span" fontWeight="normal">
+                    <Text as="span" fontWeight="normal" color="#7f8aa3">
                       {topic || "—"}
                     </Text>
                   </Text>
                   <Text fontWeight="medium">
                     Website URL:{" "}
-                    <Text as="span" fontWeight="normal">
+                    <Text as="span" fontWeight="normal" color="#7f8aa3">
                       {websiteUrl || "—"}
                     </Text>
                   </Text>
                   <Text fontWeight="medium">
                     Description:{" "}
-                    <Text as="span" fontWeight="normal">
+                    <Text as="span" fontWeight="normal" color="#7f8aa3">
                       {description || "—"}
                     </Text>
                   </Text>
                 </Box>
 
                 <Flex gap={3} flexWrap="wrap">
-                  <Button colorScheme="brand" onClick={handleGenerateArticles}>
+                  <Button colorScheme="brand" onClick={() => router.push("/article-generator")}>
                     Generate Articles
                   </Button>
                   <Button variant="outline" onClick={handleCopyKeywords}>

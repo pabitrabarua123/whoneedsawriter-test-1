@@ -43,48 +43,32 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Get make.com webhook URL from environment variable (or fallback for local/dev)
-    const makeComWebhookUrl =
-      process.env.MAKE_COM_KEYWORD_RESEARCH_WEBHOOK_URL ||
-      "https://hook.eu2.make.com/7afh5k1xkl5sv305uwrgkvxdsqu1x6el";
-
-    if (makeComWebhookUrl) {
-      // Prepare form data for make.com API (form-urlencoded)
-      const params = new URLSearchParams();
-      params.append("id", keywordRecord.id);
-      params.append("website_url", websiteUrl || "");
-      params.append("topic", topic || "");
-      params.append("description", description);
-      params.append("goal", goal);
-      params.append("user_id", userId);
-      params.append("user_email", userEmail);
-
-      // Must await on Vercel: serverless functions terminate after response;
-      // fire-and-forget would often never complete in production.
-      try {
-        // await axios.post(makeComWebhookUrl, params.toString(), {
-        //   headers: {
-        //     "Content-Type": "application/x-www-form-urlencoded",
-        //   },
-        //   timeout: 10000, // 10s for production network latency
-        // });
-        console.log(`✅ Successfully sent keyword research request to make.com for id ${keywordRecord.id}`);
-      } catch (error) {
-        const msg = error instanceof Error ? error.message : String(error);
-        console.error(`❌ Make.com API call failed for keyword research ${keywordRecord.id}:`, msg);
-        // Still return success — record is created; Make.com can be retried separately if needed
-      }
-    } else {
-      console.warn("⚠️ MAKE_COM_KEYWORD_RESEARCH_WEBHOOK_URL not configured. Skipping make.com webhook call.");
-    }
+// deduct balance 0.1 credit for keyword research
+const user = await prismaClient.user.findUnique({ where: { id: userId } });
+if(user && user?.monthyBalance > 0) {
+  await prismaClient.user.update({
+    where: { id: userId },
+    data: { monthyBalance: user?.monthyBalance - 0.1 },
+  });
+} else if(user && user.lifetimeBalance > 0){
+  await prismaClient.user.update({
+    where: { id: userId },
+    data: { lifetimeBalance: user?.lifetimeBalance - 0.1 },
+  });
+} else {
+  await prismaClient.user.update({
+    where: { id: userId },
+    data: { freeCredits: (user?.freeCredits || 0) - 0.1 },
+  });
 
     return NextResponse.json({
       success: true,
       message: "Keyword research request created successfully",
       id: keywordRecord.id,
     }, { status: 200 });
-  } catch (error) {
-    console.error("Error creating keyword research:", error);
-    return NextResponse.json({ error: "Failed to create keyword research request", message: "Failed to create keyword research request" }, { status: 500 });
   }
+} catch (error) {
+  console.error("Error creating keyword research:", error);
+  return NextResponse.json({ error: "Failed to deduct balance" }, { status: 400 });
+}
 }

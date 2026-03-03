@@ -12,6 +12,7 @@ import { IoChevronBackSharp } from "react-icons/io5";
 import { GrNext } from "react-icons/gr";
 import DashboardHeader from "@/components/organisms/DashboardHeader/DashboardHeader";
 import { RenderFormStep } from "./FormSteps";
+import { UserContext, UserContextType } from "@/app/customProviders/UserProvider";
 
 type ResearchData = {
   websiteUrl: string;
@@ -21,7 +22,7 @@ type ResearchData = {
 }
 
 const KeywordResearch: React.FC = () => {
-
+  const { user, isLoading, error: userError } = useContext(UserContext) as UserContextType;
   const [currentStep, setCurrentStep] = useState<number>(1);
   const totalSteps = 4;
   const [researchData, setResearchData] = useState<ResearchData>({
@@ -61,6 +62,11 @@ const KeywordResearch: React.FC = () => {
 
   const [keywordResearchResult, setKeywordResearchResult] = useState(0);
   const handleGenerateKeywordResearch = async () => {
+    const totalCredits = (user?.monthyBalance || 0) + (user?.lifetimeBalance || 0) + (user?.freeCredits || 0);
+    if(totalCredits < 0.1) {
+      alert('You do not have enough credits to generate keyword research');
+      return;
+    }
     try {
       setIsProcessing(true);
       setProgress(0);

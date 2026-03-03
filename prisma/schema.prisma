@@ -271,8 +271,7 @@ model keywords {
   seedKeyword    String?
   goal           String?
   json           String?
-  userEmail      String?
-  emailSent      Boolean   @default(false)
+  requestProcess Int       @default(0)
   status         Int       @default(0)
   createdAt      DateTime  @default(now())
 }
